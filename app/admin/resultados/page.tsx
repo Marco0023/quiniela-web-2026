@@ -72,14 +72,14 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
                 Prorroga
                 <select className={inputClass} defaultValue={String(result?.wentExtraTime ?? false)} name="wentExtraTime">
                   <option value="false">No</option>
-                  <option value="true">Si</option>
+                  <option value="true">Sí</option>
                 </select>
               </label>
               <label className="grid gap-1 text-xs font-bold text-white/60">
                 Penales
                 <select className={inputClass} defaultValue={String(result?.wentPenalties ?? false)} name="wentPenalties">
                   <option value="false">No</option>
-                  <option value="true">Si</option>
+                  <option value="true">Sí</option>
                 </select>
               </label>
               <button className="min-h-11 rounded-md bg-gold px-4 font-black text-pitch md:col-span-6" type="submit">

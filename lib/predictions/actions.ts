@@ -55,7 +55,7 @@ export async function savePrediction(formData: FormData) {
   }
 
   if (isPredictionLocked(match.kickoff_at)) {
-    fail(matchId, "La prediccion ya esta cerrada para este partido.");
+    fail(matchId, "La predicción ya está cerrada para este partido.");
   }
 
   const predictionType = getPredictionType({
@@ -89,10 +89,10 @@ export async function savePrediction(formData: FormData) {
 
   if (predictionType === "knockout" || predictionType === "final") {
     if (!predictedWinnerTeamId) {
-      fail(matchId, "Selecciona quien gana o avanza.");
+      fail(matchId, "Selecciona quién gana o avanza.");
     }
     if (![match.home_team_id, match.away_team_id].includes(predictedWinnerTeamId)) {
-      fail(matchId, "Seleccion invalida para este partido.");
+      fail(matchId, "Selección inválida para este partido.");
     }
   }
 
@@ -116,7 +116,7 @@ export async function savePrediction(formData: FormData) {
   );
 
   if (error) {
-    fail(matchId, "No se pudo guardar la prediccion.");
+    fail(matchId, "No se pudo guardar la predicción.");
   }
 
   revalidatePath("/dashboard");

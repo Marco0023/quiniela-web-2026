@@ -38,7 +38,7 @@ export function GroupPredictions({
         <p className="text-sm text-white/55">{predictions.length} predicciones realizadas</p>
       </div>
       {predictions.length === 0 ? (
-        <p className="px-4 py-5 text-sm text-white/55">Todavia no hay predicciones guardadas para mostrar.</p>
+        <p className="px-4 py-5 text-sm text-white/55">Todavía no hay predicciones guardadas para mostrar.</p>
       ) : (
         <div className="divide-y divide-white/10">
           {predictions.map((prediction) => {
@@ -70,7 +70,7 @@ function formatPrediction(prediction: Prediction, match: Match, teams: Team[]) {
       prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null
         ? `, marcador ${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
         : "";
-    return `${prediction.predictedOutcome ? outcomeLabels[prediction.predictedOutcome] : "Sin seleccion"}${score}`;
+    return `${prediction.predictedOutcome ? outcomeLabels[prediction.predictedOutcome] : "Sin selección"}${score}`;
   }
 
   const winner = teams.find((team) => team.id === prediction.predictedWinnerTeamId);
@@ -78,7 +78,7 @@ function formatPrediction(prediction: Prediction, match: Match, teams: Team[]) {
     match.phase === "final" && prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null
       ? `, 90 min ${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
       : "";
-  const extra = prediction.predictsExtraTime ? ", prorroga si" : ", prorroga no";
-  const penalties = prediction.predictsPenalties ? ", penales si" : ", penales no";
-  return `${match.phase === "final" ? "Campeon" : "Avanza"} ${winner?.name ?? "por definir"}${score}${extra}${penalties}`;
+  const extra = prediction.predictsExtraTime ? ", prórroga sí" : ", prórroga no";
+  const penalties = prediction.predictsPenalties ? ", penales sí" : ", penales no";
+  return `${match.phase === "final" ? "Campeón" : "Avanza"} ${winner?.name ?? "por definir"}${score}${extra}${penalties}`;
 }

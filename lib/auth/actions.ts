@@ -18,14 +18,14 @@ export async function login(formData: FormData) {
   const password = required(formData.get("password"));
 
   if (!email || !password) {
-    redirectWithError("/login", "Ingresa correo y contrasena.");
+    redirectWithError("/login", "Ingresa correo y contraseña.");
   }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirectWithError("/login", "Correo o contrasena incorrectos.");
+    redirectWithError("/login", "Correo o contraseña incorrectos.");
   }
 
   redirect("/dashboard");
@@ -46,7 +46,7 @@ export async function register(formData: FormData) {
   }
 
   if (password.length < 6) {
-    redirectWithError("/registro", "La contrasena debe tener al menos 6 caracteres.");
+    redirectWithError("/registro", "La contraseña debe tener al menos 6 caracteres.");
   }
 
   const admin = createAdminClient();
@@ -57,7 +57,7 @@ export async function register(formData: FormData) {
     .single();
 
   if (groupError || !group) {
-    redirectWithError("/registro", "Codigo secreto invalido.");
+    redirectWithError("/registro", "Código secreto inválido.");
   }
 
   const supabase = await createClient();
@@ -131,7 +131,7 @@ export async function selectChampion(formData: FormData) {
   });
 
   if (error) {
-    redirectWithError("/campeon", "No se pudo guardar tu campeon.");
+    redirectWithError("/campeon", "No se pudo guardar tu campeón.");
   }
 
   redirect("/dashboard");

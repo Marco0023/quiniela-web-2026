@@ -24,7 +24,7 @@ export default async function DashboardPage() {
                   Tu grupo ya esta listo para el Mundial.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/62">
-                  Ranking privado, predicciones cerradas antes de cada partido y puntos automaticos para
+                  Ranking privado, predicciones cerradas antes de cada partido y puntos automáticos para
                   {data.group ? ` ${data.group.name}` : " tu grupo"}.
                 </p>
               </div>
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
                 <Trophy className="size-6" />
               </div>
               <div>
-                <p className="text-sm text-white/55">Campeon elegido</p>
+                <p className="text-sm text-white/55">Campeón elegido</p>
                 <h2 className="text-xl font-black">{championTeam?.name ?? "Pendiente"}</h2>
               </div>
             </div>

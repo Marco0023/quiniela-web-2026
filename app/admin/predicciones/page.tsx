@@ -10,7 +10,7 @@ export default async function AdminPredictionsPage() {
       <SectionHeader eyebrow="Admin" title="Predicciones" />
       <Card className="overflow-hidden p-0">
         {data.predictions.length === 0 ? (
-          <p className="px-4 py-5 text-sm text-white/55">Todavia no hay predicciones guardadas.</p>
+          <p className="px-4 py-5 text-sm text-white/55">Todavía no hay predicciones guardadas.</p>
         ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
@@ -19,7 +19,7 @@ export default async function AdminPredictionsPage() {
                 <th className="px-4 py-3">Usuario</th>
                 <th className="px-4 py-3">Partido</th>
                 <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Seleccion</th>
+                <th className="px-4 py-3">Selección</th>
                 <th className="px-4 py-3">Marcador</th>
                 <th className="px-4 py-3">Puntos</th>
               </tr>

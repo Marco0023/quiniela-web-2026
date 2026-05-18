@@ -45,7 +45,7 @@ export function MatchCard({
 
       <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3">
         <p className="text-sm text-white/62">
-          {prediction ? "Prediccion guardada" : "Pendiente por predecir"}
+          {prediction ? "Predicción guardada" : "Pendiente por predecir"}
         </p>
         <Link
           href={`/partidos/${match.id}`}

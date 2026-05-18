@@ -10,7 +10,7 @@ export default async function AdminUsersPage() {
       <SectionHeader eyebrow="Admin" title="Usuarios" />
       <Card className="overflow-hidden p-0">
         {data.users.length === 0 ? (
-          <p className="px-4 py-5 text-sm text-white/55">Todavia no hay usuarios registrados.</p>
+          <p className="px-4 py-5 text-sm text-white/55">Todavía no hay usuarios registrados.</p>
         ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">

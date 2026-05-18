@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       provider: provider.name,
       sync_type: "full",
       status: "success",
-      message: "Sincronizacion ejecutada correctamente.",
+      message: "Sincronización ejecutada correctamente.",
       metadata: {
         teams: teams.length,
         matches: matches.length,

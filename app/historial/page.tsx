@@ -13,7 +13,7 @@ export default async function HistoryPage() {
       <div className="grid gap-3">
         {data.predictions.length === 0 ? (
           <Card>
-            <p className="text-sm text-white/55">Todavia no tienes predicciones guardadas.</p>
+            <p className="text-sm text-white/55">Todavía no tienes predicciones guardadas.</p>
           </Card>
         ) : null}
         {data.predictions.map((prediction) => {

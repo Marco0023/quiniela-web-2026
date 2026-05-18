@@ -74,7 +74,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
       {predictionType === "knockout" || predictionType === "final" ? (
         <>
           <label className="grid gap-2 text-sm font-semibold text-white/78">
-            {predictionType === "final" ? "Ganador del Mundial" : "Quien avanza"}
+            {predictionType === "final" ? "Ganador del Mundial" : "Quién avanza"}
             <select
               className={inputClass}
               disabled={locked}
@@ -100,8 +100,8 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
           ) : null}
 
           <div className="grid grid-cols-2 gap-2">
-            <Toggle label="Habra prorroga" checked={extraTime} disabled={locked} onChange={setExtraTime} />
-            <Toggle label="Habra penales" checked={penalties} disabled={locked} onChange={setPenalties} />
+            <Toggle label="Habrá prórroga" checked={extraTime} disabled={locked} onChange={setExtraTime} />
+            <Toggle label="Habrá penales" checked={penalties} disabled={locked} onChange={setPenalties} />
           </div>
         </>
       ) : null}
@@ -112,7 +112,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-gold px-4 font-black text-pitch transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Save className="size-4" />
-        {locked ? "Prediccion cerrada" : "Guardar prediccion"}
+        {locked ? "Predicción cerrada" : "Guardar predicción"}
       </button>
       <p className="text-xs text-white/45">Puedes editar hasta 5 minutos antes del inicio del partido.</p>
     </form>

@@ -11,7 +11,7 @@ export default async function AdminLogsPage() {
       {data.logs.length === 0 ? (
         <Card>
           <p className="text-sm text-white/60">
-            Todavia no hay logs. Apareceran cuando ejecutes una sincronizacion o guardes resultados manuales.
+            Todavía no hay logs. Aparecerán cuando ejecutes una sincronización o guardes resultados manuales.
           </p>
         </Card>
       ) : (

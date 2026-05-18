@@ -86,7 +86,7 @@ export async function saveMatchResult(formData: FormData) {
   }
 
   if (matchRow.phase !== "group_stage" && !winnerTeamId) {
-    redirect(`/admin/resultados?error=${encodeURIComponent("Selecciona ganador o quien avanza.")}`);
+    redirect(`/admin/resultados?error=${encodeURIComponent("Selecciona ganador o quién avanza.")}`);
   }
 
   const computedWinner =

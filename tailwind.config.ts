@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pitch: "#07120e",
-        turf: "#0e2b22",
+        pitch: "#020817",
+        turf: "#041a3d",
         emeraldGlow: "#22c55e",
         gold: "#f4c95d",
         ink: "#e8fff5"

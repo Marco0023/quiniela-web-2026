@@ -15,7 +15,7 @@ export default async function ChampionPage({ searchParams }: { searchParams: Pro
 
   return (
     <AppShell>
-      <SectionHeader eyebrow="Obligatorio" title="Elige tu campeon" />
+      <SectionHeader eyebrow="Obligatorio" title="Elige tu campeón" />
       <p className="mb-5 max-w-2xl text-sm leading-6 text-white/62">
         Esta seleccion se guarda una sola vez y no podra modificarse.
       </p>

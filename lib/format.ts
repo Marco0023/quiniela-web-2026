@@ -11,7 +11,7 @@ export function formatKickoff(kickoffAt: string, timezone = "America/Bogota") {
 
 export function statusLabel(status: MatchStatus) {
   const labels: Record<MatchStatus, string> = {
-    scheduled: "Proximo",
+    scheduled: "Próximo",
     locked: "Cerrado",
     live: "En juego",
     finished: "Finalizado",

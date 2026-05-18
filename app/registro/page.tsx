@@ -27,7 +27,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <Field label="Correo">
             <input className={inputClass} name="email" required type="email" />
           </Field>
-          <Field label="Contrasena">
+          <Field label="Contraseña">
             <input className={inputClass} name="password" required type="password" />
           </Field>
           <Field label="Pais para horario">
@@ -40,7 +40,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             </select>
           </Field>
           <div className="md:col-span-2">
-            <Field label="Codigo secreto">
+            <Field label="Código secreto">
               <input className={inputClass} name="inviteCode" placeholder={GROUPS.map((group) => group.inviteCode).join(", ")} required />
             </Field>
           </div>
@@ -54,7 +54,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         <p className="mt-5 text-center text-sm text-white/55">
           Ya tienes cuenta?{" "}
           <Link className="font-bold text-gold" href="/login">
-            Inicia sesion
+            Inicia sesión
           </Link>
         </p>
       </section>

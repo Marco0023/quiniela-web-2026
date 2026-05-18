@@ -40,13 +40,13 @@ export default async function MatchDetailPage({
           </div>
         </Card>
         <Card>
-          <h2 className="mb-4 text-xl font-black">Tu prediccion</h2>
+          <h2 className="mb-4 text-xl font-black">Tu predicción</h2>
           {status.error ? (
             <p className="mb-4 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{status.error}</p>
           ) : null}
           {status.saved ? (
             <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">
-              Prediccion guardada.
+              Predicción guardada.
             </p>
           ) : null}
           <PredictionForm
