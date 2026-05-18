@@ -37,15 +37,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </header>
 
         <section className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[1fr_0.88fr]">
-          <div className="relative min-h-[560px]">
+          <div className="relative min-h-[680px] overflow-hidden lg:min-h-[620px]">
             <div className="pointer-events-none absolute -left-10 top-8 text-[12rem] font-black leading-none text-white/[0.035] md:text-[18rem]">
               26
             </div>
-            <div className="relative z-10 max-w-2xl pt-12 md:pt-24">
+            <div className="relative z-10 max-w-2xl pt-10 md:pt-16">
               <span className="inline-flex rounded-md bg-[#80d35a]/15 px-3 py-1 text-sm font-black uppercase tracking-wide text-[#8fe56d]">
                 Vive la pasión
               </span>
-              <h1 className="mt-5 text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl">
+              <h1 className="mt-5 text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl lg:max-w-xl">
                 Acierta. Compite.
                 <span className="block text-[#80d35a]">Gana.</span>
               </h1>
@@ -53,8 +53,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 Únete a la quiniela del Mundial 2026 y demuestra quién sabe más de fútbol.
               </p>
 
-              <div className="mt-10 grid max-w-lg gap-6">
-                <Feature icon={UsersRound} title="Compite con tu grupo" body="Ranking privado por grupo." />
+              <div className="mt-10 grid max-w-lg gap-6 rounded-lg border border-white/10 bg-[#020817]/45 p-4 backdrop-blur-sm md:p-5">
+                <Feature
+                  icon={UsersRound}
+                  title="Compite por el primer lugar"
+                  body="Demuestra tu nivel y sube en el ranking del grupo."
+                />
                 <Feature icon={Target} title="Haz tus predicciones" body="Suma puntos y sube posiciones." />
                 <Feature icon={Trophy} title="Sé el campeón" body="El primero en la tabla será legendario." />
               </div>
@@ -66,7 +70,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               width={760}
               height={760}
               priority
-              className="pointer-events-none absolute -bottom-16 -left-28 z-0 w-[22rem] max-w-none rotate-[-5deg] drop-shadow-[0_30px_80px_rgba(216,169,57,0.32)] md:w-[30rem] lg:-left-32"
+              className="pointer-events-none absolute -bottom-20 -right-16 z-0 w-[18rem] max-w-none rotate-[6deg] opacity-95 drop-shadow-[0_30px_80px_rgba(216,169,57,0.32)] md:w-[24rem] lg:-bottom-28 lg:right-4 lg:w-[27rem] xl:right-16"
             />
           </div>
 
