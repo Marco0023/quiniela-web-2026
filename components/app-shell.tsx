@@ -6,11 +6,24 @@ const navItems = [
   { href: "/dashboard", label: "Inicio", icon: Home },
   { href: "/partidos", label: "Partidos", icon: CalendarDays },
   { href: "/ranking", label: "Ranking", icon: BarChart3 },
-  { href: "/historial", label: "Historial", icon: History },
+  { href: "/historial", label: "Historial", icon: History }
+];
+
+const adminNavItems = [
   { href: "/admin", label: "Admin", icon: Shield }
 ];
 
-export function AppShell({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AppShell({
+  children,
+  className,
+  showAdmin = false
+}: {
+  children: React.ReactNode;
+  className?: string;
+  showAdmin?: boolean;
+}) {
+  const visibleNavItems = showAdmin ? [...navItems, ...adminNavItems] : navItems;
+
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-pitch/82 backdrop-blur-xl">
@@ -20,7 +33,7 @@ export function AppShell({ children, className }: { children: React.ReactNode; c
             <span className="text-lg font-black text-ink">Quiniela Mundial 2026</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -38,8 +51,8 @@ export function AppShell({ children, className }: { children: React.ReactNode; c
       </header>
       <main className={cn("mx-auto max-w-6xl px-4 py-5 md:py-8", className)}>{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-pitch/92 px-2 py-2 backdrop-blur-xl md:hidden">
-        <div className="grid grid-cols-5 gap-1">
-          {navItems.map((item) => {
+        <div className={cn("grid gap-1", showAdmin ? "grid-cols-5" : "grid-cols-4")}>
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link

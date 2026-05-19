@@ -28,7 +28,7 @@ export default async function MatchDetailPage({
   const awayTeam = data.teams.find((team) => team.id === match.awayTeamId);
 
   return (
-    <AppShell>
+    <AppShell showAdmin={data.profile.role === "admin"}>
       <SectionHeader eyebrow={PHASE_LABELS[match.phase]} title={`Partido ${match.matchNumber}`} />
       <div className="grid gap-5 lg:grid-cols-[0.85fr_1fr]">
         <Card>

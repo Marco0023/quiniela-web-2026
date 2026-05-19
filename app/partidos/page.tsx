@@ -8,7 +8,7 @@ export default async function MatchesPage() {
   const data = await getDashboardData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin={data.profile.role === "admin"}>
       <SectionHeader eyebrow="Mundial 2026" title="Partidos y predicciones" />
       <div className="grid gap-7">
         {PHASE_ORDER.map((phase) => {

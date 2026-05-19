@@ -12,7 +12,7 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
   const data = await getAdminResultsData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <SectionHeader eyebrow="Admin" title="Resultados" />
         <form action="/api/sync" method="post">

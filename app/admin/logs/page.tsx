@@ -6,7 +6,7 @@ export default async function AdminLogsPage() {
   const data = await getAdminLogsData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin>
       <SectionHeader eyebrow="Admin" title="Logs de sincronizacion" />
       {data.logs.length === 0 ? (
         <Card>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GROUPS, TIMEZONE_OPTIONS } from "@/lib/constants";
+import { TIMEZONE_OPTIONS } from "@/lib/constants";
 import { Field, inputClass } from "@/components/ui";
 import { register } from "@/lib/auth/actions";
 
@@ -21,7 +21,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <Field label="Apellido">
             <input className={inputClass} name="lastName" required />
           </Field>
-          <Field label="Alias unico">
+          <Field label="Alias único">
             <input className={inputClass} name="alias" required />
           </Field>
           <Field label="Correo">
@@ -30,7 +30,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <Field label="Contraseña">
             <input className={inputClass} name="password" required type="password" />
           </Field>
-          <Field label="Pais para horario">
+          <Field label="País para horario">
             <select className={inputClass} defaultValue="Colombia" name="timezoneCountry" required>
               {TIMEZONE_OPTIONS.map((option) => (
                 <option key={option.country} value={option.country}>
@@ -41,7 +41,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           </Field>
           <div className="md:col-span-2">
             <Field label="Código secreto">
-              <input className={inputClass} name="inviteCode" placeholder={GROUPS.map((group) => group.inviteCode).join(", ")} required />
+              <input className={inputClass} name="inviteCode" placeholder="Ingresa tu código de invitación" required />
             </Field>
           </div>
           <button
@@ -52,7 +52,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           </button>
         </form>
         <p className="mt-5 text-center text-sm text-white/55">
-          Ya tienes cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link className="font-bold text-gold" href="/login">
             Inicia sesión
           </Link>

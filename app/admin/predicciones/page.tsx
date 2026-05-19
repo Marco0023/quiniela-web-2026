@@ -6,7 +6,7 @@ export default async function AdminPredictionsPage() {
   const data = await getAdminPredictionsData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin>
       <SectionHeader eyebrow="Admin" title="Predicciones" />
       <Card className="overflow-hidden p-0">
         {data.predictions.length === 0 ? (

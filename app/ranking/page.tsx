@@ -7,7 +7,7 @@ export default async function RankingPage() {
   const data = await getDashboardData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin={data.profile.role === "admin"}>
       <SectionHeader eyebrow={data.group?.name} title="Ranking del grupo" />
       <RankingTable ranking={data.ranking} currentUserId={data.profile.id} />
     </AppShell>

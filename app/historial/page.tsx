@@ -8,7 +8,7 @@ export default async function HistoryPage() {
   const data = await getDashboardData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin={data.profile.role === "admin"}>
       <SectionHeader eyebrow="Tus partidos" title="Historial de predicciones" />
       <div className="grid gap-3">
         {data.predictions.length === 0 ? (

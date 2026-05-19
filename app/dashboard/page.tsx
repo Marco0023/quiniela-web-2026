@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <AppShell>
+    <AppShell showAdmin={data.profile.role === "admin"}>
       <div className="grid gap-5">
         <section className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <Card className="overflow-hidden">

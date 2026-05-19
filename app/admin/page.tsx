@@ -14,7 +14,7 @@ export default async function AdminPage() {
   ];
 
   return (
-    <AppShell>
+    <AppShell showAdmin>
       <SectionHeader eyebrow="Panel" title="Administrador" />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {modules.map((item) => {

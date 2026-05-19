@@ -6,7 +6,7 @@ export default async function AdminUsersPage() {
   const data = await getAdminUsersData();
 
   return (
-    <AppShell>
+    <AppShell showAdmin>
       <SectionHeader eyebrow="Admin" title="Usuarios" />
       <Card className="overflow-hidden p-0">
         {data.users.length === 0 ? (
