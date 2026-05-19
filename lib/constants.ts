@@ -10,7 +10,7 @@ export const GROUPS: Group[] = [
   {
     id: "grp_familia_nunez_quinones",
     slug: "familia-nunez-quinones",
-    name: "Familia Nunez Quinones",
+    name: "Familia Nuñez Quiñones",
     inviteCode: "PANTALONES26"
   },
   {

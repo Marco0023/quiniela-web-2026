@@ -1,6 +1,6 @@
 import type { Profile } from "@/lib/types";
 import { Card } from "@/components/ui";
-import { badgesForRankingRow, funBadges } from "@/lib/badges";
+import { badgesForRankingRow, visibleBadgePreview } from "@/lib/badges";
 
 export function RankingTable({
   ranking,
@@ -45,7 +45,7 @@ export function RankingTable({
       <div className="border-t border-white/10 px-4 py-4">
         <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-gold">Insignias por desbloquear</p>
         <div className="flex flex-wrap gap-2">
-          {funBadges.map((badge) => (
+          {visibleBadgePreview.map((badge) => (
             <span
               key={badge.title}
               className="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white/72"
@@ -54,6 +54,9 @@ export function RankingTable({
               {badge.emoji} {badge.title}
             </span>
           ))}
+          <span className="rounded-md border border-gold/20 bg-gold/10 px-2.5 py-1.5 text-xs font-bold text-gold">
+            ✨ y muchos más...
+          </span>
         </div>
       </div>
     </Card>

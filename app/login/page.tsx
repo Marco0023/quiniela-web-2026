@@ -79,7 +79,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               <UserRound className="size-8" />
             </div>
             <div className="mb-7 text-center">
-              <h2 className="text-3xl font-black">Bienvenido de nuevo</h2>
+              <h2 className="text-3xl font-black">Bienvenido/a de nuevo</h2>
               <p className="mt-2 text-white/70">Ingresa a tu cuenta para continuar</p>
             </div>
             {error ? (

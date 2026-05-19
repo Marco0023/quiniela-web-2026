@@ -22,7 +22,7 @@ export default async function DashboardPage() {
               <div>
                 <p className="text-sm font-semibold text-gold">Hola, {data.profile.firstName}</p>
                 <h1 className="mt-2 text-3xl font-black leading-tight text-ink md:text-5xl">
-                  Bienvenido a la competencia para demostrar tu sabiduría mundialista.
+                  Bienvenido/a a la competencia para demostrar tu sabiduría mundialista.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/62">
                   Conviértete en la persona más sabia de {groupName}. Aquí se gana con memoria,

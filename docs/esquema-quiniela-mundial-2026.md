@@ -64,7 +64,7 @@ Para el MVP existiran exactamente 3 grupos fijos:
 | Grupo | Nombre | Codigo secreto |
 | --- | --- | --- |
 | 1 | Familia Marquez | `FM26` |
-| 2 | Familia Nunez Quinones | `PANTALONES26` |
+| 2 | Familia Nuñez Quiñones | `PANTALONES26` |
 | 3 | Mondaquera Bochinche | `MANCOS26` |
 
 Reglas:
@@ -177,7 +177,7 @@ Ejemplo:
 
 - `mriera371@gmail.com`: admin.
 - `mriera371+fm@gmail.com`: participante Familia Marquez.
-- `mriera371+fnq@gmail.com`: participante Familia Nunez Quinones.
+- `mriera371+fnq@gmail.com`: participante Familia Nuñez Quiñones.
 - `mriera371+mb@gmail.com`: participante Mondaquera Bochinche.
 
 ## 7. Campeon elegido
@@ -516,7 +516,7 @@ Restricciones:
 Seed inicial:
 
 - Familia Marquez / `FM26`.
-- Familia Nunez Quinones / `PANTALONES26`.
+- Familia Nuñez Quiñones / `PANTALONES26`.
 - Mondaquera Bochinche / `MANCOS26`.
 
 ### `teams`
@@ -841,4 +841,3 @@ No incluye en MVP:
 16. Crear sync manual y cron.
 17. Pulir UI responsive.
 18. Preparar deploy en Vercel.
-

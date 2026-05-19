@@ -116,7 +116,7 @@ create table if not exists public.sync_logs (
 insert into public.groups (name, invite_code)
 values
   ('Familia Marquez', 'FM26'),
-  ('Familia Nunez Quinones', 'PANTALONES26'),
+  ('Familia Nuñez Quiñones', 'PANTALONES26'),
   ('Mondaquera Bochinche', 'MANCOS26')
 on conflict (invite_code) do nothing;
 
