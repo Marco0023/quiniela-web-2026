@@ -18,8 +18,8 @@ export function HowItWorksButton() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/65 px-4 py-6 backdrop-blur-sm">
-          <section className="w-full max-w-2xl rounded-lg border border-white/15 bg-[#07162b] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/65 px-4 py-6 backdrop-blur-sm sm:py-10">
+          <section className="max-h-[calc(100dvh-3rem)] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/15 bg-[#07162b] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:max-h-[calc(100dvh-5rem)]">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-gold">Guía rápida</p>
