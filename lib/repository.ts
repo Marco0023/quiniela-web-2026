@@ -423,7 +423,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     predictionsResponse,
     resultsResponse,
     groupProfilesResponse,
-    groupPredictionsResponse
+    groupPredictionsResponse,
+    championPredictionsResponse
   ] = await Promise.all([
     profile.groupId
       ? admin.from("groups").select("id,name,invite_code").eq("id", profile.groupId).maybeSingle<GroupRow>()
@@ -438,7 +439,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
       : Promise.resolve({ data: [], error: null }),
     profile.groupId
       ? admin.from("match_predictions").select("*").eq("group_id", profile.groupId)
-      : Promise.resolve({ data: [], error: null })
+      : Promise.resolve({ data: [], error: null }),
+    admin.from("champion_predictions").select("user_id,team_id,created_at")
   ]);
 
   const champion = championResponse.data ? mapChampion(championResponse.data) : null;
@@ -456,6 +458,10 @@ export async function getDashboardData({ requireChampion = true } = {}) {
   const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
   const groupProfiles = groupProfilesResponse.data ? (groupProfilesResponse.data as ProfileRow[]).map(mapProfile) : [];
   const groupPredictions = groupPredictionsResponse.data ? (groupPredictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
+  const groupUserIds = new Set(groupProfiles.map((user) => user.id));
+  const groupChampionPredictions = championPredictionsResponse.data
+    ? (championPredictionsResponse.data as ChampionRow[]).map(mapChampion).filter((item) => groupUserIds.has(item.userId))
+    : [];
 
   const rankedRows = groupProfiles
     .map((user) => ({
@@ -482,6 +488,7 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     predictions: userPredictions,
     groupPredictions,
     groupUsers: groupProfiles,
+    groupChampionPredictions,
     champion,
     ranking
   };
@@ -519,6 +526,9 @@ function getMockDashboardData() {
     predictions: userPredictions,
     groupPredictions: mockPredictions.filter((item) => item.groupId === profile.groupId),
     groupUsers: groupProfiles,
+    groupChampionPredictions: championPredictions.filter((item) =>
+      groupProfiles.some((user) => user.id === item.userId)
+    ),
     champion,
     ranking
   };
