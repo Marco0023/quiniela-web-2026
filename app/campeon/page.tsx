@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { ChampionInfoPopup } from "@/components/champion-info-popup";
 import { Card, SectionHeader } from "@/components/ui";
 import { selectChampion } from "@/lib/auth/actions";
 import { getChampionSelectionData } from "@/lib/repository";
@@ -15,9 +16,10 @@ export default async function ChampionPage({ searchParams }: { searchParams: Pro
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
+      <ChampionInfoPopup />
       <SectionHeader eyebrow="Obligatorio" title="Elige tu campeón" />
       <p className="mb-5 max-w-2xl text-sm leading-6 text-white/62">
-        Esta selección se guarda una sola vez y no podrá modificarse.
+        Esta selección se guarda una sola vez y no podrá modificarse. Si tu equipo gana el Mundial, sumas puntos extra.
       </p>
       {error ? (
         <p className="mb-5 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{error}</p>

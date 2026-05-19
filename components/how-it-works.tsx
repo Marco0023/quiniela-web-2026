@@ -18,11 +18,11 @@ export function HowItWorksButton() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/65 px-4 backdrop-blur-sm">
-          <section className="w-full max-w-lg rounded-lg border border-white/15 bg-[#07162b] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/65 px-4 py-6 backdrop-blur-sm">
+          <section className="w-full max-w-2xl rounded-lg border border-white/15 bg-[#07162b] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-gold">Reglas rápidas</p>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-gold">Guía rápida</p>
                 <h2 className="mt-1 text-2xl font-black text-ink">¿Cómo funciona?</h2>
               </div>
               <button
@@ -35,24 +35,56 @@ export function HowItWorksButton() {
               </button>
             </div>
 
-            <div className="grid gap-3 text-sm leading-6 text-white/72">
-              <p>
-                Entras con tu grupo privado, eliges tu campeón una sola vez y haces predicciones antes de que cierre cada partido.
-              </p>
-              <ul className="grid gap-2">
-                <li><strong className="text-white">Ganador o empate:</strong> 3 puntos.</li>
-                <li><strong className="text-white">Marcador exacto:</strong> +2 puntos.</li>
-                <li><strong className="text-white">Diferencia de goles:</strong> +1 punto en victorias.</li>
-                <li><strong className="text-white">Campeón acertado:</strong> 10 puntos.</li>
-                <li><strong className="text-white">Campeón + final acertada:</strong> bonus de 5 puntos.</li>
-              </ul>
-              <p>
-                Las predicciones se bloquean 5 minutos antes del inicio y ahí se revelan las del grupo.
-              </p>
+            <div className="grid gap-4 text-sm leading-6 text-white/72">
+              <InfoBlock title="1. Elige tu campeón">
+                Debes escoger un campeón antes de entrar al dashboard. Esa selección se guarda una sola vez y no se puede
+                cambiar. Si tu equipo gana el Mundial, sumas 10 puntos. Si además acertaste el ganador de la final, recibes
+                un bonus adicional.
+              </InfoBlock>
+
+              <InfoBlock title="2. Haz tus predicciones por partido">
+                Primero eliges quién gana: local, empate o visitante. El marcador exacto es opcional. Si no sabes mucho de
+                fútbol, puedes elegir solo el ganador y listo. Si quieres arriesgar para ganar más puntos, agregas marcador.
+              </InfoBlock>
+
+              <InfoBlock title="3. ¿Qué es la diferencia de goles?">
+                Es por cuántos goles gana un equipo. Por ejemplo, 2-1 y 3-2 tienen diferencia de 1 gol. Si aciertas el
+                ganador y la diferencia, puedes sumar un punto extra aunque no pegues el marcador exacto.
+              </InfoBlock>
+
+              <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
+                <p className="font-black text-white">Puntos por partido</p>
+                <ul className="mt-2 grid gap-1">
+                  <li>Ganador o empate: 3 puntos.</li>
+                  <li>Marcador exacto opcional: +2 puntos.</li>
+                  <li>Diferencia de goles en victorias: +1 punto.</li>
+                  <li>Total máximo por partido: 6 puntos.</li>
+                </ul>
+              </div>
+
+              <InfoBlock title="4. ¿Qué ves en el dashboard?">
+                Arriba ves tu campeón, tus puntos, tu posición y tus insignias recientes. También aparecen predicciones
+                pendientes, ranking del grupo y la jornada de hoy. Cuando un partido se cierra, puedes ver qué predijo cada
+                participante de tu grupo.
+              </InfoBlock>
+
+              <InfoBlock title="5. ¿Cuándo se cierran las predicciones?">
+                Cada partido se bloquea 5 minutos antes de empezar. Desde ese momento ya no se puede editar y las
+                predicciones del grupo quedan visibles para todos.
+              </InfoBlock>
             </div>
           </section>
         </div>
       ) : null}
     </>
+  );
+}
+
+function InfoBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="font-black text-white">{title}</h3>
+      <p className="mt-1">{children}</p>
+    </div>
   );
 }

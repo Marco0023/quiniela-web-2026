@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Trophy, UserRoundCheck } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { DashboardWelcomePopup } from "@/components/dashboard-welcome-popup";
 import { MatchCard } from "@/components/match-card";
 import { RankingTable } from "@/components/ranking-table";
 import { TodayMatches } from "@/components/today-matches";
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
+      <DashboardWelcomePopup groupName={groupName} />
       <div className="grid gap-5">
         <section className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <Card className="overflow-hidden">
