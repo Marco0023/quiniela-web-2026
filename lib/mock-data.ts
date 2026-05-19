@@ -2,14 +2,26 @@ import { GROUPS } from "@/lib/constants";
 import type { ChampionPrediction, Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
 export const teams: Team[] = [
+  { id: "ger", name: "Alemania", shortName: "GER", flagUrl: "https://flagcdn.com/w80/de.png" },
   { id: "arg", name: "Argentina", shortName: "ARG", flagUrl: "https://flagcdn.com/w80/ar.png" },
+  { id: "aut", name: "Austria", shortName: "AUT", flagUrl: "https://flagcdn.com/w80/at.png" },
+  { id: "bel", name: "Bélgica", shortName: "BEL", flagUrl: "https://flagcdn.com/w80/be.png" },
   { id: "bra", name: "Brasil", shortName: "BRA", flagUrl: "https://flagcdn.com/w80/br.png" },
   { id: "col", name: "Colombia", shortName: "COL", flagUrl: "https://flagcdn.com/w80/co.png" },
-  { id: "mex", name: "Mexico", shortName: "MEX", flagUrl: "https://flagcdn.com/w80/mx.png" },
+  { id: "cro", name: "Croacia", shortName: "CRO", flagUrl: "https://flagcdn.com/w80/hr.png" },
+  { id: "egy", name: "Egipto", shortName: "EGY", flagUrl: "https://flagcdn.com/w80/eg.png" },
+  { id: "esp", name: "España", shortName: "ESP", flagUrl: "https://flagcdn.com/w80/es.png" },
   { id: "usa", name: "Estados Unidos", shortName: "USA", flagUrl: "https://flagcdn.com/w80/us.png" },
-  { id: "esp", name: "Espana", shortName: "ESP", flagUrl: "https://flagcdn.com/w80/es.png" },
   { id: "fra", name: "Francia", shortName: "FRA", flagUrl: "https://flagcdn.com/w80/fr.png" },
-  { id: "eng", name: "Inglaterra", shortName: "ENG", flagUrl: "https://flagcdn.com/w80/gb-eng.png" }
+  { id: "eng", name: "Inglaterra", shortName: "ENG", flagUrl: "https://flagcdn.com/w80/gb-eng.png" },
+  { id: "jpn", name: "Japón", shortName: "JPN", flagUrl: "https://flagcdn.com/w80/jp.png" },
+  { id: "mar", name: "Marruecos", shortName: "MAR", flagUrl: "https://flagcdn.com/w80/ma.png" },
+  { id: "mex", name: "México", shortName: "MEX", flagUrl: "https://flagcdn.com/w80/mx.png" },
+  { id: "nor", name: "Noruega", shortName: "NOR", flagUrl: "https://flagcdn.com/w80/no.png" },
+  { id: "ned", name: "Países Bajos", shortName: "NED", flagUrl: "https://flagcdn.com/w80/nl.png" },
+  { id: "por", name: "Portugal", shortName: "POR", flagUrl: "https://flagcdn.com/w80/pt.png" },
+  { id: "sen", name: "Senegal", shortName: "SEN", flagUrl: "https://flagcdn.com/w80/sn.png" },
+  { id: "tur", name: "Turquía", shortName: "TUR", flagUrl: "https://flagcdn.com/w80/tr.png" }
 ];
 
 export const matches: Match[] = [

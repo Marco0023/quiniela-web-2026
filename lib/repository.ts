@@ -107,6 +107,10 @@ function mapTeam(row: TeamRow): Team {
   };
 }
 
+function sortTeamsBySpanishName(teams: Team[]) {
+  return [...teams].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+}
+
 function mapMatch(row: MatchRow): Match {
   return {
     id: row.id,
@@ -180,10 +184,10 @@ export async function getTeams() {
   try {
     const admin = createAdminClient();
     const { data, error } = await admin.from("teams").select("id,name,short_name,flag_url").order("name");
-    if (error || !data || data.length === 0) return mockTeams;
-    return (data as TeamRow[]).map(mapTeam);
+    if (error || !data || data.length === 0) return sortTeamsBySpanishName(mockTeams);
+    return sortTeamsBySpanishName((data as TeamRow[]).map(mapTeam));
   } catch {
-    return mockTeams;
+    return sortTeamsBySpanishName(mockTeams);
   }
 }
 
@@ -227,7 +231,10 @@ export async function getAdminResultsData() {
 
   return {
     profile,
-    teams: teamsResponse.data && teamsResponse.data.length > 0 ? (teamsResponse.data as TeamRow[]).map(mapTeam) : mockTeams,
+    teams:
+      teamsResponse.data && teamsResponse.data.length > 0
+        ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
+        : sortTeamsBySpanishName(mockTeams),
     matches:
       matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches,
     resultsByMatchId
@@ -327,7 +334,7 @@ export async function getAdminPredictionsData() {
     predictions: predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [],
     users: profilesResponse.data ? (profilesResponse.data as ProfileRow[]).map(mapProfile) : [],
     matches: matchesResponse.data ? (matchesResponse.data as MatchRow[]).map(mapMatch) : [],
-    teams: teamsResponse.data ? (teamsResponse.data as TeamRow[]).map(mapTeam) : []
+    teams: teamsResponse.data ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam)) : []
   };
 }
 
@@ -439,7 +446,10 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     redirect("/campeon");
   }
 
-  const teams = teamsResponse.data && teamsResponse.data.length > 0 ? (teamsResponse.data as TeamRow[]).map(mapTeam) : mockTeams;
+  const teams =
+    teamsResponse.data && teamsResponse.data.length > 0
+      ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
+      : sortTeamsBySpanishName(mockTeams);
   const matches =
     matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
   const userPredictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
@@ -501,7 +511,7 @@ function getMockDashboardData() {
   return {
     profile,
     group,
-    teams: mockTeams,
+    teams: sortTeamsBySpanishName(mockTeams),
     matches: mockMatches,
     results: [],
     predictions: userPredictions,

@@ -17,7 +17,7 @@ export default async function ChampionPage({ searchParams }: { searchParams: Pro
     <AppShell showAdmin={data.profile.role === "admin"}>
       <SectionHeader eyebrow="Obligatorio" title="Elige tu campeón" />
       <p className="mb-5 max-w-2xl text-sm leading-6 text-white/62">
-        Esta seleccion se guarda una sola vez y no podra modificarse.
+        Esta selección se guarda una sola vez y no podrá modificarse.
       </p>
       {error ? (
         <p className="mb-5 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{error}</p>
