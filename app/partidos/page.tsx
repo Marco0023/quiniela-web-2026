@@ -23,6 +23,7 @@ export default async function MatchesPage() {
                     key={match.id}
                     match={match}
                     teams={data.teams}
+                    result={data.results.find((result) => result.matchId === match.id)}
                     prediction={data.predictions.find((prediction) => prediction.matchId === match.id)}
                     timezone={data.profile.timezone}
                   />

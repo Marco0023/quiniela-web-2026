@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Save } from "lucide-react";
 import { inputClass } from "@/components/ui";
@@ -33,39 +34,57 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
       <input name="predictedWinnerTeamId" type="hidden" value={winnerTeamId} />
       <input name="predictsExtraTime" type="hidden" value={String(extraTime)} />
       <input name="predictsPenalties" type="hidden" value={String(penalties)} />
+
       {predictionType === "group_stage" ? (
         <>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              ["home", homeTeam?.shortName ?? "Local"],
-              ["draw", "Empate"],
-              ["away", awayTeam?.shortName ?? "Visita"]
-            ].map(([value, label]) => (
-              <button
-                type="button"
-                disabled={locked}
-                key={value}
-                onClick={() => setOutcome(value as Outcome)}
-                className={`min-h-12 rounded-md border px-2 text-sm font-black transition ${
-                  outcome === value
-                    ? "border-gold bg-gold text-pitch"
-                    : "border-white/10 bg-white/5 text-white/72"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div>
+            <h3 className="font-black text-white">¿Quién crees que gana?</h3>
+            <p className="mt-1 text-sm leading-6 text-white/58">
+              Si aciertas el ganador o el empate, sumas 3 puntos. Elige con el corazón, con la mente o con el presentimiento familiar.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <OutcomeButton
+              active={outcome === "home"}
+              disabled={locked}
+              label={homeTeam?.name ?? "Local"}
+              team={homeTeam}
+              onClick={() => setOutcome("home")}
+            />
+            <button
+              type="button"
+              disabled={locked}
+              onClick={() => setOutcome("draw")}
+              className={`min-h-14 rounded-md border px-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                outcome === "draw" ? "border-gold bg-gold text-pitch" : "border-white/10 bg-white/5 text-white/72"
+              }`}
+            >
+              Empate
+            </button>
+            <OutcomeButton
+              active={outcome === "away"}
+              disabled={locked}
+              label={awayTeam?.name ?? "Visitante"}
+              team={awayTeam}
+              onClick={() => setOutcome("away")}
+            />
           </div>
           <ScoreFields
+            homeLabel={homeTeam?.name ?? "Local"}
+            awayLabel={awayTeam?.name ?? "Visitante"}
             homeScore={homeScore}
             awayScore={awayScore}
             setHomeScore={setHomeScore}
             setAwayScore={setAwayScore}
             disabled={locked}
           />
+          <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
+            El marcador no es obligatorio. Pero si quieres medir tu poder mundialista, puedes sumar puntos extra por acertar
+            el resultado exacto o la diferencia de goles.
+          </p>
           {!scoreIsValid ? (
             <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
-              El marcador opcional debe coincidir con la seleccion principal.
+              El marcador opcional debe coincidir con la selección principal.
             </p>
           ) : null}
         </>
@@ -73,30 +92,41 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
 
       {predictionType === "knockout" || predictionType === "final" ? (
         <>
-          <label className="grid gap-2 text-sm font-semibold text-white/78">
-            {predictionType === "final" ? "Ganador del Mundial" : "Quién avanza"}
-            <select
-              className={inputClass}
-              disabled={locked}
-              value={winnerTeamId}
-              onChange={(event) => setWinnerTeamId(event.target.value)}
-            >
-              {[homeTeam, awayTeam].filter(Boolean).map((team) => (
-                <option key={team!.id} value={team!.id}>
-                  {team!.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div>
+            <h3 className="font-black text-white">
+              {predictionType === "final" ? "¿Quién gana la final?" : "¿Quién avanza?"}
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-white/58">
+              En eliminación cuenta quién sigue con vida, incluyendo prórroga y penales.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[homeTeam, awayTeam].filter(Boolean).map((team) => (
+              <WinnerButton
+                key={team!.id}
+                active={winnerTeamId === team!.id}
+                disabled={locked}
+                team={team!}
+                onClick={() => setWinnerTeamId(team!.id)}
+              />
+            ))}
+          </div>
 
           {predictionType === "final" ? (
-            <ScoreFields
-              homeScore={homeScore}
-              awayScore={awayScore}
-              setHomeScore={setHomeScore}
-              setAwayScore={setAwayScore}
-              disabled={locked}
-            />
+            <>
+              <ScoreFields
+                homeLabel={homeTeam?.name ?? "Local"}
+                awayLabel={awayTeam?.name ?? "Visitante"}
+                homeScore={homeScore}
+                awayScore={awayScore}
+                setHomeScore={setHomeScore}
+                setAwayScore={setAwayScore}
+                disabled={locked}
+              />
+              <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
+                El marcador es opcional y corresponde a los 90 minutos. Si te sale la visión, puedes sumar puntos extra.
+              </p>
+            </>
           ) : null}
 
           <div className="grid grid-cols-2 gap-2">
@@ -114,18 +144,79 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
         <Save className="size-4" />
         {locked ? "Predicción cerrada" : "Guardar predicción"}
       </button>
-      <p className="text-xs text-white/45">Puedes editar hasta 5 minutos antes del inicio del partido.</p>
+      <p className="text-sm leading-6 text-white/50">
+        Guarda tu predicción con tranquilidad. Si después te arrepientes, puedes modificarla hasta 5 minutos antes de que
+        empiece el partido.
+      </p>
     </form>
   );
 }
 
+function OutcomeButton({
+  active,
+  disabled,
+  label,
+  team,
+  onClick
+}: {
+  active: boolean;
+  disabled: boolean;
+  label: string;
+  team?: Team;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${
+        active ? "border-gold bg-gold text-pitch" : "border-white/10 bg-white/5 text-white/72"
+      }`}
+    >
+      {team?.flagUrl ? <Image src={team.flagUrl} alt="" width={26} height={18} className="h-4 w-6 rounded-sm object-cover" /> : null}
+      <span className="truncate">{label}</span>
+    </button>
+  );
+}
+
+function WinnerButton({
+  active,
+  disabled,
+  team,
+  onClick
+}: {
+  active: boolean;
+  disabled: boolean;
+  team: Team;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${
+        active ? "border-gold bg-gold text-pitch" : "border-white/10 bg-white/5 text-white/72"
+      }`}
+    >
+      {team.flagUrl ? <Image src={team.flagUrl} alt="" width={26} height={18} className="h-4 w-6 rounded-sm object-cover" /> : null}
+      <span className="truncate">{team.name}</span>
+    </button>
+  );
+}
+
 function ScoreFields({
+  homeLabel,
+  awayLabel,
   homeScore,
   awayScore,
   setHomeScore,
   setAwayScore,
   disabled = false
 }: {
+  homeLabel: string;
+  awayLabel: string;
   homeScore: string;
   awayScore: string;
   setHomeScore: (value: string) => void;
@@ -134,8 +225,8 @@ function ScoreFields({
 }) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
-      <label className="grid gap-2 text-sm font-semibold text-white/78">
-        Local
+      <label className="grid min-w-0 gap-2 text-sm font-semibold text-white/78">
+        <span className="truncate">{homeLabel}</span>
         <input
           className={inputClass}
           disabled={disabled}
@@ -147,8 +238,8 @@ function ScoreFields({
         />
       </label>
       <span className="pb-3 text-white/45">-</span>
-      <label className="grid gap-2 text-sm font-semibold text-white/78">
-        Visitante
+      <label className="grid min-w-0 gap-2 text-sm font-semibold text-white/78">
+        <span className="truncate">{awayLabel}</span>
         <input
           className={inputClass}
           disabled={disabled}
