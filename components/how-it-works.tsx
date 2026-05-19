@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { HelpCircle, X } from "lucide-react";
 
 export function HowItWorksButton() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <>
@@ -17,7 +24,8 @@ export function HowItWorksButton() {
         ¿Cómo funciona?
       </button>
 
-      {open ? (
+      {open && mounted
+        ? createPortal(
         <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/65 px-4 py-6 backdrop-blur-sm sm:py-10">
           <section className="max-h-[calc(100dvh-3rem)] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/15 bg-[#07162b] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:max-h-[calc(100dvh-5rem)]">
             <div className="mb-4 flex items-start justify-between gap-4">
@@ -74,8 +82,10 @@ export function HowItWorksButton() {
               </InfoBlock>
             </div>
           </section>
-        </div>
-      ) : null}
+        </div>,
+        document.body
+        )
+        : null}
     </>
   );
 }
