@@ -480,6 +480,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     matches,
     results,
     predictions: userPredictions,
+    groupPredictions,
+    groupUsers: groupProfiles,
     champion,
     ranking
   };
@@ -515,6 +517,8 @@ function getMockDashboardData() {
     matches: mockMatches,
     results: [],
     predictions: userPredictions,
+    groupPredictions: mockPredictions.filter((item) => item.groupId === profile.groupId),
+    groupUsers: groupProfiles,
     champion,
     ranking
   };

@@ -52,10 +52,51 @@ export const funBadges: FunBadge[] = [
 
 export const visibleBadgePreview = funBadges.filter((badge) => badge.category === "visible");
 
+const firstPredictionBadges = ["Vamo' a esto mi gente.", "Toy ready.", "Mano tengo fe."];
+const firstExactScoreBadges = ["Suban en nivel a esto.", "Facilito"];
+
+function pickBadge(titles: string[], seed: string) {
+  const total = [...seed].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const title = titles[total % titles.length];
+  return funBadges.find((badge) => badge.title === title);
+}
+
 export function badgesForRankingRow(rank: number, points: number): FunBadge[] {
   if (rank === 1 && points > 0) {
     return [funBadges.find((badge) => badge.title === "Rey de la Jornada")!];
   }
 
   return [];
+}
+
+export function recentBadgesForUser({
+  userId,
+  rank,
+  points,
+  predictionCount,
+  bestMatchPoints
+}: {
+  userId: string;
+  rank: number;
+  points: number;
+  predictionCount: number;
+  bestMatchPoints: number;
+}) {
+  const badges: FunBadge[] = [];
+
+  if (rank === 1 && points > 0) {
+    badges.push(funBadges.find((badge) => badge.title === "Rey de la Jornada")!);
+  }
+
+  if (bestMatchPoints >= 5) {
+    const exactBadge = pickBadge(firstExactScoreBadges, `${userId}-exact`);
+    if (exactBadge) badges.push(exactBadge);
+  }
+
+  if (predictionCount > 0) {
+    const firstBadge = pickBadge(firstPredictionBadges, userId);
+    if (firstBadge) badges.push(firstBadge);
+  }
+
+  return badges.slice(0, 2);
 }

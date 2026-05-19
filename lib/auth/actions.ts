@@ -60,6 +60,20 @@ export async function register(formData: FormData) {
     redirectWithError("/registro", "Código secreto inválido.");
   }
 
+  const role = email === ADMIN_EMAIL ? "admin" : "participant";
+  if (role === "participant") {
+    const { data: existingAlias } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("group_id", group.id)
+      .ilike("alias", alias)
+      .maybeSingle();
+
+    if (existingAlias) {
+      redirectWithError("/registro", "Ese alias ya existe en este grupo.");
+    }
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -75,7 +89,6 @@ export async function register(formData: FormData) {
     redirectWithError("/registro", error?.message ?? "No se pudo crear la cuenta.");
   }
 
-  const role = email === ADMIN_EMAIL ? "admin" : "participant";
   const { error: profileError } = await admin.from("profiles").insert({
     id: data.user.id,
     first_name: firstName,
@@ -90,7 +103,10 @@ export async function register(formData: FormData) {
 
   if (profileError) {
     await admin.auth.admin.deleteUser(data.user.id);
-    redirectWithError("/registro", profileError.code === "23505" ? "Ese alias ya existe." : "No se pudo crear el perfil.");
+    redirectWithError(
+      "/registro",
+      profileError.code === "23505" ? "Ese alias ya existe en este grupo." : "No se pudo crear el perfil."
+    );
   }
 
   redirect("/campeon");
