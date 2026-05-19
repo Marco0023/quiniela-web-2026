@@ -11,6 +11,7 @@ export default async function DashboardPage() {
   const pendingMatches = data.matches.filter(
     (match) => !data.predictions.some((prediction) => prediction.matchId === match.id)
   );
+  const groupName = data.group?.name ?? "tu grupo";
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
@@ -21,11 +22,11 @@ export default async function DashboardPage() {
               <div>
                 <p className="text-sm font-semibold text-gold">Hola, {data.profile.firstName}</p>
                 <h1 className="mt-2 text-3xl font-black leading-tight text-ink md:text-5xl">
-                  Tu grupo ya esta listo para el Mundial.
+                  Bienvenido a la competencia para demostrar tu sabiduría mundialista.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/62">
-                  Ranking privado, predicciones cerradas antes de cada partido y puntos automáticos para
-                  {data.group ? ` ${data.group.name}` : " tu grupo"}.
+                  Conviértete en la persona más sabia de {groupName}. Aquí se gana con memoria,
+                  intuición y una pizca de descaro futbolero.
                 </p>
               </div>
               <Badge tone="gold">{data.profile.alias}</Badge>

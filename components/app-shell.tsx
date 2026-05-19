@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarChart3, CalendarDays, History, Home, Shield } from "lucide-react";
+import { HowItWorksButton } from "@/components/how-it-works";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -33,6 +34,7 @@ export function AppShell({
             <span className="text-lg font-black text-ink">Quiniela Mundial 2026</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
+            <HowItWorksButton />
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -51,6 +53,9 @@ export function AppShell({
       </header>
       <main className={cn("mx-auto max-w-6xl px-4 py-5 md:py-8", className)}>{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-pitch/92 px-2 py-2 backdrop-blur-xl md:hidden">
+        <div className="mb-1 flex justify-center">
+          <HowItWorksButton />
+        </div>
         <div className={cn("grid gap-1", showAdmin ? "grid-cols-5" : "grid-cols-4")}>
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
