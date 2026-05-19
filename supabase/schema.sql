@@ -11,7 +11,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   first_name text not null,
   last_name text not null,
-  alias text not null,
+  alias text not null unique,
   email text not null,
   role text not null default 'participant' check (role in ('participant', 'admin')),
   group_id uuid references public.groups(id),
@@ -119,14 +119,6 @@ values
   ('Familia Nuñez Quiñones', 'PANTALONES26'),
   ('Mondaquera Bochinche', 'MANCOS26')
 on conflict (invite_code) do nothing;
-
-alter table public.profiles
-drop constraint if exists profiles_alias_key;
-
-drop index if exists public.profiles_group_alias_unique_idx;
-create unique index if not exists profiles_group_alias_unique_idx
-on public.profiles (group_id, lower(alias))
-where group_id is not null;
 
 alter table public.groups enable row level security;
 alter table public.profiles enable row level security;

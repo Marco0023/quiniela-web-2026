@@ -17,12 +17,16 @@ export default async function DashboardPage() {
   );
   const groupName = data.group?.name ?? "tu grupo";
   const currentRanking = data.ranking.find((row) => row.user.id === data.profile.id);
+  const finalMatch = data.matches.find((match) => match.phase === "final");
+  const finalResult = finalMatch ? data.results.find((result) => result.matchId === finalMatch.id) : null;
   const recentBadges = recentBadgesForUser({
     userId: data.profile.id,
-    rank: currentRanking?.rank ?? 0,
-    points: currentRanking?.points ?? 0,
-    predictionCount: data.predictions.length,
-    bestMatchPoints: data.predictions.reduce((best, prediction) => Math.max(best, prediction.pointsAwarded), 0)
+    ranking: data.ranking,
+    matches: data.matches,
+    results: data.results,
+    predictions: data.groupPredictions,
+    championPredictions: data.groupChampionPredictions,
+    worldChampionTeamId: finalResult?.winnerTeamId
   });
 
   return (
