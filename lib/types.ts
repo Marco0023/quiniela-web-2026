@@ -86,6 +86,14 @@ export type ChampionPrediction = {
   createdAt: string;
 };
 
+export type GroupClassificationPrediction = {
+  userId: string;
+  groupId: string;
+  tournamentGroup: string;
+  orderedTeamIds: string[];
+  updatedAt: string;
+};
+
 export type RankingSnapshot = {
   groupId: string;
   userId: string;

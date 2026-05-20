@@ -72,6 +72,17 @@ create table if not exists public.champion_predictions (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.group_classification_predictions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  app_group_id uuid not null references public.groups(id) on delete cascade,
+  tournament_group text not null,
+  ordered_team_ids uuid[] not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, tournament_group)
+);
+
 create table if not exists public.match_predictions (
   id uuid primary key default gen_random_uuid(),
   match_id uuid not null references public.matches(id) on delete cascade,
@@ -140,6 +151,7 @@ alter table public.teams enable row level security;
 alter table public.matches enable row level security;
 alter table public.match_results enable row level security;
 alter table public.champion_predictions enable row level security;
+alter table public.group_classification_predictions enable row level security;
 alter table public.match_predictions enable row level security;
 alter table public.prediction_score_breakdown enable row level security;
 alter table public.sync_logs enable row level security;

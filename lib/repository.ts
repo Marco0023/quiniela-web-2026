@@ -3,7 +3,17 @@ import { championPredictions, currentUser, matches as mockMatches, predictions a
 import { GROUPS } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { ChampionPrediction, Group, Match, MatchResult, Prediction, Profile, RankingSnapshot, Team } from "@/lib/types";
+import type {
+  ChampionPrediction,
+  Group,
+  GroupClassificationPrediction,
+  Match,
+  MatchResult,
+  Prediction,
+  Profile,
+  RankingSnapshot,
+  Team
+} from "@/lib/types";
 
 type ProfileRow = {
   id: string;
@@ -83,6 +93,14 @@ type RankingSnapshotRow = {
   points: number;
   total_participants: number;
   created_at: string;
+};
+
+type ClassificationPredictionRow = {
+  user_id: string;
+  app_group_id: string;
+  tournament_group: string;
+  ordered_team_ids: string[];
+  updated_at: string;
 };
 
 function mapProfile(row: ProfileRow): Profile {
@@ -183,6 +201,16 @@ function mapRankingSnapshot(row: RankingSnapshotRow): RankingSnapshot {
     points: row.points,
     totalParticipants: row.total_participants,
     createdAt: row.created_at
+  };
+}
+
+function mapClassificationPrediction(row: ClassificationPredictionRow): GroupClassificationPrediction {
+  return {
+    userId: row.user_id,
+    groupId: row.app_group_id,
+    tournamentGroup: row.tournament_group,
+    orderedTeamIds: row.ordered_team_ids,
+    updatedAt: row.updated_at
   };
 }
 
@@ -447,7 +475,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     groupProfilesResponse,
     groupPredictionsResponse,
     championPredictionsResponse,
-    rankingSnapshotsResponse
+    rankingSnapshotsResponse,
+    classificationPredictionsResponse
   ] = await Promise.all([
     profile.groupId
       ? admin.from("groups").select("id,name,invite_code").eq("id", profile.groupId).maybeSingle<GroupRow>()
@@ -466,6 +495,9 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     admin.from("champion_predictions").select("user_id,team_id,created_at"),
     profile.groupId
       ? admin.from("ranking_snapshots").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
+    profile.groupId
+      ? admin.from("group_classification_predictions").select("*").eq("user_id", profile.id)
       : Promise.resolve({ data: [], error: null })
   ]);
 
@@ -490,6 +522,9 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     : [];
   const groupRankingSnapshots = rankingSnapshotsResponse.data
     ? (rankingSnapshotsResponse.data as RankingSnapshotRow[]).map(mapRankingSnapshot)
+    : [];
+  const classificationPredictions = classificationPredictionsResponse.data
+    ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
 
   const rankedRows = groupProfiles
@@ -519,6 +554,7 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     groupUsers: groupProfiles,
     groupChampionPredictions,
     groupRankingSnapshots,
+    classificationPredictions,
     champion,
     ranking
   };
@@ -560,6 +596,7 @@ function getMockDashboardData() {
       groupProfiles.some((user) => user.id === item.userId)
     ),
     groupRankingSnapshots: [],
+    classificationPredictions: [],
     champion,
     ranking
   };
