@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Trophy, UserRoundCheck } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { BadgeChip } from "@/components/badge-chip";
 import { DashboardWelcomePopup } from "@/components/dashboard-welcome-popup";
 import { MatchCard } from "@/components/match-card";
 import { RankingTable } from "@/components/ranking-table";
@@ -8,12 +9,13 @@ import { TodayMatches } from "@/components/today-matches";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { recentBadgesForUser } from "@/lib/badges";
 import { getDashboardData } from "@/lib/repository";
+import { isPredictionLocked } from "@/lib/scoring";
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
   const championTeam = data.teams.find((team) => team.id === data.champion?.teamId);
   const pendingMatches = data.matches.filter(
-    (match) => !data.predictions.some((prediction) => prediction.matchId === match.id)
+    (match) => !isPredictionLocked(match.kickoffAt) && !data.predictions.some((prediction) => prediction.matchId === match.id)
   );
   const groupName = data.group?.name ?? "tu grupo";
   const currentRanking = data.ranking.find((row) => row.user.id === data.profile.id);
@@ -36,10 +38,10 @@ export default async function DashboardPage() {
       <div className="grid gap-5">
         <section className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <Card className="overflow-hidden">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-gold">Hola, {data.profile.firstName}</p>
-                <h1 className="mt-2 text-3xl font-black leading-tight text-ink md:text-5xl">
+                <h1 className="mt-2 text-2xl font-black leading-tight text-ink sm:text-3xl md:text-5xl">
                   Bienvenido/a a la competencia para demostrar tu sabiduría mundialista.
                 </h1>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/62">
@@ -47,7 +49,9 @@ export default async function DashboardPage() {
                   intuición y una pizca de descaro futbolero.
                 </p>
               </div>
-              <Badge tone="gold">{data.profile.alias}</Badge>
+              <div className="self-start">
+                <Badge tone="gold">{data.profile.alias}</Badge>
+              </div>
             </div>
           </Card>
 
@@ -84,13 +88,7 @@ export default async function DashboardPage() {
               {recentBadges.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {recentBadges.map((badge) => (
-                    <span
-                      key={badge.title}
-                      className="rounded-md border border-gold/20 bg-gold/10 px-2.5 py-1.5 text-xs font-bold text-gold"
-                      title={badge.description}
-                    >
-                      {badge.emoji} {badge.title}
-                    </span>
+                    <BadgeChip key={badge.title} badge={badge} />
                   ))}
                 </div>
               ) : (
@@ -117,6 +115,11 @@ export default async function DashboardPage() {
                     timezone={data.profile.timezone}
                   />
                 ))}
+                {pendingMatches.length === 0 ? (
+                  <Card>
+                    <p className="text-sm text-white/55">No tienes predicciones pendientes abiertas.</p>
+                  </Card>
+                ) : null}
               </div>
             </div>
             <Card>

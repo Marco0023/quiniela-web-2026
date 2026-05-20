@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BarChart3, CalendarDays, History, Home, Shield } from "lucide-react";
 import { HowItWorksButton } from "@/components/how-it-works";
+import { MobileNav } from "@/components/mobile-nav";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -56,21 +57,7 @@ export function AppShell({
         <div className="mb-1 flex justify-center">
           <HowItWorksButton />
         </div>
-        <div className={cn("grid gap-1", showAdmin ? "grid-cols-5" : "grid-cols-4")}>
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex flex-col items-center gap-1 rounded-md px-1 py-2 text-[11px] text-white/70"
-              >
-                <Icon className="size-5" />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+        <MobileNav items={visibleNavItems} columns={showAdmin ? "grid-cols-5" : "grid-cols-4"} />
       </nav>
     </div>
   );

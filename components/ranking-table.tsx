@@ -1,4 +1,5 @@
 import type { Profile } from "@/lib/types";
+import { BadgeChip } from "@/components/badge-chip";
 import { Card } from "@/components/ui";
 import { badgesForRankingRow, visibleBadgePreview } from "@/lib/badges";
 
@@ -16,7 +17,7 @@ export function RankingTable({
           const badges = badgesForRankingRow(row.rank, row.points);
 
           return (
-            <div key={row.user.id} className="grid grid-cols-[3rem_1fr_auto] items-start gap-3 px-4 py-3">
+            <div key={row.user.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-2 px-3 py-3 sm:grid-cols-[3rem_1fr_auto] sm:gap-3 sm:px-4">
               <span className="text-lg font-black text-gold">#{row.rank}</span>
               <div className="min-w-0">
                 <p className="truncate font-bold text-white">{row.user.alias}</p>
@@ -26,18 +27,14 @@ export function RankingTable({
                 {badges.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {badges.map((badge) => (
-                      <span
-                        key={badge.title}
-                        className="rounded bg-gold/15 px-2 py-1 text-[11px] font-bold text-gold"
-                        title={badge.description}
-                      >
-                        {badge.emoji} {badge.title}
-                      </span>
+                      <BadgeChip key={badge.title} badge={badge} />
                     ))}
                   </div>
                 ) : null}
               </div>
-              <span className="rounded bg-white/10 px-3 py-1 text-sm font-black text-ink">{row.points} pts</span>
+              <span className="rounded bg-white/10 px-2 py-1 text-xs font-black text-ink sm:px-3 sm:text-sm">
+                {row.points} pts
+              </span>
             </div>
           );
         })}
@@ -46,13 +43,7 @@ export function RankingTable({
         <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-gold">Insignias por desbloquear</p>
         <div className="flex flex-wrap gap-2">
           {visibleBadgePreview.map((badge) => (
-            <span
-              key={badge.title}
-              className="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-white/72"
-              title={badge.description}
-            >
-              {badge.emoji} {badge.title}
-            </span>
+            <BadgeChip key={badge.title} badge={badge} />
           ))}
           <span className="rounded-md border border-gold/20 bg-gold/10 px-2.5 py-1.5 text-xs font-bold text-gold">
             ✨ y muchos más...
