@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { isRequestFromAdminSession } from "@/lib/admin/auth";
 import { getFootballApiProvider } from "@/lib/football-api/provider";
+import { runFootballSync } from "@/lib/football-api/sync-service";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const syncTypes = new Set(["teams", "matches", "results", "full"]);
 
 export async function POST(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -16,44 +19,42 @@ export async function POST(request: Request) {
 
   const provider = getFootballApiProvider();
   const admin = createAdminClient();
+  const body = await safeJson(request);
+  const syncType = syncTypes.has(body.syncType ?? "") ? (body.syncType as "teams" | "matches" | "results" | "full") : "full";
 
   try {
-    const [teams, matches, results] = await Promise.all([
-      provider.syncTeams(),
-      provider.syncMatches(),
-      provider.syncResults()
-    ]);
+    const metadata = await runFootballSync(provider, syncType);
 
     await admin.from("sync_logs").insert({
       provider: provider.name,
-      sync_type: "full",
+      sync_type: syncType,
       status: "success",
       message: "Sincronización ejecutada correctamente.",
-      metadata: {
-        teams: teams.length,
-        matches: matches.length,
-        results: results.length
-      }
+      metadata
     });
 
     return NextResponse.json({
       status: "success",
       provider: provider.name,
-      imported: {
-        teams: teams.length,
-        matches: matches.length,
-        results: results.length
-      }
+      imported: metadata
     });
   } catch (error) {
     await admin.from("sync_logs").insert({
       provider: provider.name,
-      sync_type: "full",
+      sync_type: syncType,
       status: "error",
       message: error instanceof Error ? error.message : "Error desconocido",
       metadata: {}
     });
 
     return NextResponse.json({ error: "No se pudo sincronizar" }, { status: 500 });
+  }
+}
+
+async function safeJson(request: Request) {
+  try {
+    return (await request.json()) as { syncType?: string };
+  } catch {
+    return {};
   }
 }

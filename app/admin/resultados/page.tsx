@@ -7,7 +7,7 @@ import { statusLabel } from "@/lib/format";
 import { saveMatchResult } from "@/lib/admin/results-actions";
 import { getAdminResultsData } from "@/lib/repository";
 
-export default async function AdminResultsPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string }> }) {
+export default async function AdminResultsPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string; synced?: string }> }) {
   const status = await searchParams;
   const data = await getAdminResultsData();
 
@@ -15,18 +15,24 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
     <AppShell showAdmin>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <SectionHeader eyebrow="Admin" title="Resultados" />
-        <form action="/api/sync" method="post">
-          <button className="inline-flex min-h-11 items-center gap-2 rounded-md bg-gold px-4 font-black text-pitch" type="submit">
-            <RefreshCw className="size-4" />
-            Actualizar ahora
-          </button>
-        </form>
+        <button
+          className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 rounded-md border border-white/10 bg-white/8 px-4 font-black text-white/45"
+          disabled
+          title="Sincronización pausada hasta acercarnos al torneo."
+          type="button"
+        >
+          <RefreshCw className="size-4" />
+          Sync pausado
+        </button>
       </div>
       {status.error ? (
         <p className="mb-4 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{status.error}</p>
       ) : null}
       {status.saved ? (
         <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">Resultado guardado y puntos recalculados.</p>
+      ) : null}
+      {status.synced ? (
+        <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">Datos sincronizados correctamente.</p>
       ) : null}
       <div className="grid gap-3">
         {data.matches.map((match) => {
@@ -61,8 +67,8 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
                 Ganador / avanza
                 <select className={inputClass} defaultValue={result?.winnerTeamId ?? ""} name="winnerTeamId">
                   <option value="">Calcular si aplica</option>
-                  {[homeTeam, awayTeam].filter(Boolean).map((team) => (
-                    <option key={team!.id} value={team!.id}>
+                  {[homeTeam, awayTeam].filter(Boolean).map((team, index) => (
+                    <option key={`${match.id}-${team!.id}-${index}`} value={team!.id}>
                       {team!.name}
                     </option>
                   ))}

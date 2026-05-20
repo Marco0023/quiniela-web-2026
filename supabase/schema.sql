@@ -26,6 +26,7 @@ create table if not exists public.teams (
   name text not null,
   short_name text not null,
   flag_url text,
+  tournament_group text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -42,6 +43,7 @@ create table if not exists public.matches (
   home_placeholder text,
   away_placeholder text,
   kickoff_at timestamptz not null,
+  tournament_group text,
   status text not null default 'scheduled' check (
     status in ('scheduled', 'locked', 'live', 'finished', 'postponed', 'cancelled')
   ),
