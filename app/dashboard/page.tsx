@@ -26,6 +26,7 @@ export default async function DashboardPage() {
     results: data.results,
     predictions: data.groupPredictions,
     championPredictions: data.groupChampionPredictions,
+    rankingSnapshots: data.groupRankingSnapshots,
     worldChampionTeamId: finalResult?.winnerTeamId
   });
 

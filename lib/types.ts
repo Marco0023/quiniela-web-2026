@@ -86,6 +86,16 @@ export type ChampionPrediction = {
   createdAt: string;
 };
 
+export type RankingSnapshot = {
+  groupId: string;
+  userId: string;
+  matchId: string;
+  rank: number;
+  points: number;
+  totalParticipants: number;
+  createdAt: string;
+};
+
 export type ScoreBreakdown = {
   winnerPoints: number;
   exactScorePoints: number;

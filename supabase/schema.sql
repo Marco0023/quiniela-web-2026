@@ -113,6 +113,18 @@ create table if not exists public.sync_logs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.ranking_snapshots (
+  id uuid primary key default gen_random_uuid(),
+  group_id uuid not null references public.groups(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  match_id uuid not null references public.matches(id) on delete cascade,
+  rank int not null,
+  points int not null default 0,
+  total_participants int not null default 0,
+  created_at timestamptz not null default now(),
+  unique (group_id, user_id, match_id)
+);
+
 insert into public.groups (name, invite_code)
 values
   ('Familia Marquez', 'FM26'),
@@ -129,6 +141,7 @@ alter table public.champion_predictions enable row level security;
 alter table public.match_predictions enable row level security;
 alter table public.prediction_score_breakdown enable row level security;
 alter table public.sync_logs enable row level security;
+alter table public.ranking_snapshots enable row level security;
 
 create or replace view public.group_rankings
 with (security_invoker = true) as

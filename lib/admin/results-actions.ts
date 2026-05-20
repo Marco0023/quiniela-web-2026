@@ -179,6 +179,8 @@ export async function saveMatchResult(formData: FormData) {
     });
   }
 
+  await recordRankingSnapshots(admin, matchId);
+
   await admin.from("sync_logs").insert({
     provider: "manual",
     sync_type: "results",
@@ -195,4 +197,56 @@ export async function saveMatchResult(formData: FormData) {
   revalidatePath("/ranking");
   revalidatePath("/historial");
   redirect("/admin/resultados?saved=1");
+}
+
+async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient>, matchId: string) {
+  const [{ data: profileRows }, { data: predictionRows }] = await Promise.all([
+    admin.from("profiles").select("id,group_id,role").eq("role", "participant"),
+    admin.from("match_predictions").select("user_id,group_id,points_awarded")
+  ]);
+
+  const usersByGroup = new Map<string, { id: string; group_id: string }[]>();
+  for (const profile of profileRows ?? []) {
+    if (!profile.group_id) continue;
+    const users = usersByGroup.get(profile.group_id) ?? [];
+    users.push({ id: profile.id, group_id: profile.group_id });
+    usersByGroup.set(profile.group_id, users);
+  }
+
+  const snapshots = [...usersByGroup.entries()].flatMap(([groupId, users]) => {
+    const rankedRows = users
+      .map((user) => ({
+        userId: user.id,
+        groupId,
+        points: (predictionRows ?? [])
+          .filter((prediction) => prediction.user_id === user.id)
+          .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0)
+      }))
+      .sort((a, b) => b.points - a.points);
+
+    let lastPoints: number | null = null;
+    let lastRank = 0;
+
+    const rankedWithTies = rankedRows.map((row, index) => {
+      const rank = lastPoints === row.points ? lastRank : index + 1;
+      lastPoints = row.points;
+      lastRank = rank;
+
+      return {
+        group_id: row.groupId,
+        user_id: row.userId,
+        match_id: matchId,
+        rank,
+        points: row.points,
+        total_participants: users.length,
+        created_at: new Date().toISOString()
+      };
+    });
+
+    return rankedWithTies;
+  });
+
+  if (snapshots.length === 0) return;
+
+  await admin.from("ranking_snapshots").upsert(snapshots, { onConflict: "group_id,user_id,match_id" });
 }

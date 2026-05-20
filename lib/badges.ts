@@ -1,4 +1,4 @@
-import type { ChampionPrediction, Match, MatchResult, Prediction } from "@/lib/types";
+import type { ChampionPrediction, Match, MatchResult, Prediction, RankingSnapshot } from "@/lib/types";
 
 export type BadgeId =
   | "five_correct_streak"
@@ -227,6 +227,7 @@ export type BadgeEvaluationInput = {
   results: MatchResult[];
   predictions: Prediction[];
   championPredictions: ChampionPrediction[];
+  rankingSnapshots?: RankingSnapshot[];
   worldChampionTeamId?: string | null;
 };
 
@@ -292,9 +293,11 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   if (missedPredictions.length >= 3) add("missed_three_predictions");
 
   if (userRanking?.rank === 1 && userRanking.points > 0) add("round_king");
-  if (userRanking?.rank === 1 && userRanking.points > 0 && roundKeys(input.matches, input.results).length >= 2) {
+  if (heldFirstAcrossRecentSnapshots(input.userId, input.rankingSnapshots) || (userRanking?.rank === 1 && userRanking.points > 0 && roundKeys(input.matches, input.results).length >= 2)) {
     add("first_after_two_rounds");
   }
+  if (escapedLastPlace(input.userId, userRanking?.rank, input.rankingSnapshots)) add("survivor");
+  if (returnedToTopThree(input.userId, userRanking?.rank, input.rankingSnapshots)) add("back_to_top_three");
 
   const champion = input.championPredictions.find((prediction) => prediction.userId === input.userId);
   if (champion?.teamId && input.worldChampionTeamId && champion.teamId === input.worldChampionTeamId) {
@@ -302,6 +305,30 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   }
 
   return [...badges.values()];
+}
+
+function heldFirstAcrossRecentSnapshots(userId: string, snapshots: RankingSnapshot[] = []) {
+  const userSnapshots = snapshots
+    .filter((snapshot) => snapshot.userId === userId)
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  if (userSnapshots.length < 2) return false;
+  return userSnapshots.slice(-2).every((snapshot) => snapshot.rank === 1);
+}
+
+function escapedLastPlace(userId: string, currentRank = 0, snapshots: RankingSnapshot[] = []) {
+  if (!currentRank) return false;
+  return snapshots.some(
+    (snapshot) =>
+      snapshot.userId === userId &&
+      snapshot.totalParticipants > 1 &&
+      snapshot.rank === snapshot.totalParticipants &&
+      currentRank < snapshot.totalParticipants
+  );
+}
+
+function returnedToTopThree(userId: string, currentRank = 0, snapshots: RankingSnapshot[] = []) {
+  if (!currentRank || currentRank > 3) return false;
+  return snapshots.some((snapshot) => snapshot.userId === userId && snapshot.rank > 3);
 }
 
 export function badgesForRankingRow(rank: number, points: number): FunBadge[] {
