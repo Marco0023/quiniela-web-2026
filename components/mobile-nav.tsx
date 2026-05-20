@@ -2,14 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import { BarChart3, CalendarDays, History, Home, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export type MobileNavItem = {
+  href: string;
+  label: string;
+  icon: "home" | "calendar" | "ranking" | "history" | "admin";
+};
+
+const icons = {
+  home: Home,
+  calendar: CalendarDays,
+  ranking: BarChart3,
+  history: History,
+  admin: Shield
+};
 
 export function MobileNav({
   items,
   columns
 }: {
-  items: { href: string; label: string; icon: LucideIcon }[];
+  items: MobileNavItem[];
   columns: string;
 }) {
   const pathname = usePathname();
@@ -17,7 +31,7 @@ export function MobileNav({
   return (
     <div className={cn("grid gap-1", columns)}>
       {items.map((item) => {
-        const Icon = item.icon;
+        const Icon = icons[item.icon];
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
           <Link

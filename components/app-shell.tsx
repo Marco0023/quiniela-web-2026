@@ -1,19 +1,27 @@
 import Link from "next/link";
 import { BarChart3, CalendarDays, History, Home, Shield } from "lucide-react";
 import { HowItWorksButton } from "@/components/how-it-works";
-import { MobileNav } from "@/components/mobile-nav";
+import { MobileNav, type MobileNavItem } from "@/components/mobile-nav";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/dashboard", label: "Inicio", icon: Home },
-  { href: "/partidos", label: "Partidos", icon: CalendarDays },
-  { href: "/ranking", label: "Ranking", icon: BarChart3 },
-  { href: "/historial", label: "Historial", icon: History }
+const navItems: MobileNavItem[] = [
+  { href: "/dashboard", label: "Inicio", icon: "home" },
+  { href: "/partidos", label: "Partidos", icon: "calendar" },
+  { href: "/ranking", label: "Ranking", icon: "ranking" },
+  { href: "/historial", label: "Historial", icon: "history" }
 ];
 
-const adminNavItems = [
-  { href: "/admin", label: "Admin", icon: Shield }
+const adminNavItems: MobileNavItem[] = [
+  { href: "/admin", label: "Admin", icon: "admin" }
 ];
+
+const desktopIcons = {
+  home: Home,
+  calendar: CalendarDays,
+  ranking: BarChart3,
+  history: History,
+  admin: Shield
+};
 
 export function AppShell({
   children,
@@ -37,7 +45,7 @@ export function AppShell({
           <nav className="hidden items-center gap-1 md:flex">
             <HowItWorksButton />
             {visibleNavItems.map((item) => {
-              const Icon = item.icon;
+              const Icon = desktopIcons[item.icon];
               return (
                 <Link
                   key={item.href}
