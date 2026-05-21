@@ -63,6 +63,11 @@ export function DashboardWelcomePopup({ groupName }: { groupName: string }) {
             quieres buscar puntos extra.
           </GuideItem>
 
+          <GuideItem title="Eliminatorias y final">
+            En las rondas de eliminación eliges quién avanza. Además puedes sumar puntos extra si aciertas si habrá
+            prórroga o penales.
+          </GuideItem>
+
           <GuideItem title="Jornada de hoy">
             Aquí verás los partidos del día. Cuando se cierren las predicciones, aparecerá una tabla con lo que puso cada
             participante de tu grupo.
@@ -70,7 +75,8 @@ export function DashboardWelcomePopup({ groupName }: { groupName: string }) {
 
           <GuideItem title="Clasificaciones">
             En Partidos puedes ordenar cada grupo del Mundial del puesto 1 al 4. Es una predicción aparte de los partidos:
-            si aciertas los dos clasificados ganas 5 puntos, y si clavas las 4 posiciones ganas 12 puntos.
+            si aciertas los dos clasificados ganas 5 puntos, y si clavas las 4 posiciones ganas 12 puntos. Cada grupo
+            cierra 1 hora antes del primer segundo partido de ese grupo.
           </GuideItem>
 
           <GuideItem title="Insignias">

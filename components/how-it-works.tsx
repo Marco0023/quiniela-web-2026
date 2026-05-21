@@ -52,7 +52,7 @@ export function HowItWorksButton() {
 
               <InfoBlock title="2. Haz tus predicciones por partido">
                 Primero eliges quién gana: local, empate o visitante. El marcador exacto es opcional. Si no sabes mucho de
-                fútbol, puedes elegir solo el ganador y listo. Si quieres arriesgar para ganar más puntos, agregas marcador.
+                fútbol, puedes elegir solo el ganador y listo. Si quieres ganar más puntos, agregas marcador.
               </InfoBlock>
 
               <InfoBlock title="3. ¿Qué es la diferencia de goles?">
@@ -70,18 +70,23 @@ export function HowItWorksButton() {
                 </ul>
               </div>
 
-              <InfoBlock title="4. ¿Qué ves en el dashboard?">
+              <InfoBlock title="4. Eliminatorias y fase final">
+                En los partidos de eliminación eliges quién avanza, contando prórroga y penales. También puedes sumar 2
+                puntos por acertar si habrá prórroga y 2 puntos por acertar si habrá penales.
+              </InfoBlock>
+
+              <InfoBlock title="5. ¿Qué ves en el dashboard?">
                 Arriba ves tu campeón, tus puntos, tu posición y tus insignias recientes. También aparecen predicciones
                 pendientes, ranking del grupo y la jornada de hoy. Cuando un partido se cierra, puedes ver qué predijo cada
                 participante de tu grupo.
               </InfoBlock>
 
-              <InfoBlock title="5. ¿Cuándo se cierran las predicciones?">
+              <InfoBlock title="6. ¿Cuándo se cierran las predicciones?">
                 Cada partido se bloquea 5 minutos antes de empezar. Desde ese momento ya no se puede editar y las
                 predicciones del grupo quedan visibles para todos.
               </InfoBlock>
 
-              <InfoBlock title="6. Predice las clasificaciones">
+              <InfoBlock title="7. Predice las clasificaciones">
                 En Partidos también puedes ordenar cada grupo según cómo crees que terminará. Arrastra los equipos del
                 puesto 1 al 4. Aciertas los dos clasificados y ganas 5 puntos; si aciertas las cuatro posiciones exactas,
                 ganas 12 puntos en total. Cada grupo cierra 1 hora antes del primer segundo partido de ese grupo.
