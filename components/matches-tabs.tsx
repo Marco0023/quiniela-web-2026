@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowDown, ArrowUp, GripVertical, Save } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, GripVertical, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MatchCard } from "@/components/match-card";
 import { Card } from "@/components/ui";
@@ -37,11 +37,11 @@ export function MatchesTabs({
   teams: Team[];
   timezone: string;
 }) {
-  const [activeTab, setActiveTab] = useState<"matches" | "classification">("matches");
+  const [activeTab, setActiveTab] = useState<"matches" | "classification" | "knockout" | "finals">("matches");
 
   return (
     <div className="grid gap-5">
-      <div className="inline-grid w-full grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.055] p-1 sm:w-auto">
+      <div className="grid w-full grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.055] p-1 lg:inline-grid lg:w-auto lg:grid-cols-4">
         <button
           className={tabClass(activeTab === "matches")}
           onClick={() => setActiveTab("matches")}
@@ -56,13 +56,32 @@ export function MatchesTabs({
         >
           Clasificaciones
         </button>
+        <button
+          className={tabClass(activeTab === "knockout")}
+          onClick={() => setActiveTab("knockout")}
+          type="button"
+        >
+          Eliminatorias
+        </button>
+        <button
+          className={tabClass(activeTab === "finals")}
+          onClick={() => setActiveTab("finals")}
+          type="button"
+        >
+          Fase final
+        </button>
       </div>
 
       {activeTab === "matches" ? (
         <MatchesPanel matches={matches} predictions={predictions} results={results} teams={teams} timezone={timezone} />
-      ) : (
+      ) : null}
+      {activeTab === "classification" ? (
         <ClassificationPanel groups={groups} predictions={classificationPredictions} />
-      )}
+      ) : null}
+      {activeTab === "knockout" ? <BracketPanel matches={matches} phases={["round_of_32", "round_of_16"]} teams={teams} title="Eliminatorias" /> : null}
+      {activeTab === "finals" ? (
+        <BracketPanel matches={matches} phases={["quarter_finals", "semi_finals", "third_place", "final"]} teams={teams} title="Fase final" />
+      ) : null}
     </div>
   );
 }
@@ -82,7 +101,7 @@ function MatchesPanel({
 }) {
   return (
     <div className="grid gap-8">
-      {PHASE_ORDER.map((phase) => {
+      {PHASE_ORDER.filter((phase) => phase === "group_stage").map((phase) => {
         const phaseMatches = matches.filter((match) => match.phase === phase);
         if (phaseMatches.length === 0) return null;
         return (
@@ -104,6 +123,103 @@ function MatchesPanel({
         );
       })}
     </div>
+  );
+}
+
+function BracketPanel({
+  matches,
+  phases,
+  teams,
+  title
+}: {
+  matches: Match[];
+  phases: Match["phase"][];
+  teams: Team[];
+  title: string;
+}) {
+  const [selectedByMatch, setSelectedByMatch] = useState<Record<string, string>>({});
+
+  return (
+    <section className="grid gap-4">
+      <div>
+        <h2 className="text-2xl font-black text-gold md:text-3xl">{title}</h2>
+        <p className="mt-1 text-sm text-white/60">Selecciona quién crees que avanza. Por ahora es una vista de prueba.</p>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        {phases.map((phase) => {
+          const phaseMatches = matches.filter((match) => match.phase === phase);
+          return (
+            <div key={phase} className="grid content-start gap-3">
+              <h3 className="text-xl font-black text-ink">{PHASE_LABELS[phase]}</h3>
+              {phaseMatches.length === 0 ? (
+                <Card className="text-sm text-white/60">Todavía no hay partidos cargados para esta ronda.</Card>
+              ) : (
+                phaseMatches.map((match) => {
+                  const homeTeam = teams.find((team) => team.id === match.homeTeamId);
+                  const awayTeam = teams.find((team) => team.id === match.awayTeamId);
+                  return (
+                    <Card key={match.id} className="grid gap-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-black uppercase tracking-[0.18em] text-gold">Partido {match.matchNumber}</p>
+                        <span className="text-xs font-bold text-white/45">{PHASE_LABELS[match.phase]}</span>
+                      </div>
+                      <div className="grid gap-2">
+                        <BracketTeamButton
+                          fallback={match.homePlaceholder}
+                          isSelected={selectedByMatch[match.id] === "home"}
+                          onClick={() => setSelectedByMatch({ ...selectedByMatch, [match.id]: "home" })}
+                          team={homeTeam}
+                        />
+                        <BracketTeamButton
+                          fallback={match.awayPlaceholder}
+                          isSelected={selectedByMatch[match.id] === "away"}
+                          onClick={() => setSelectedByMatch({ ...selectedByMatch, [match.id]: "away" })}
+                          team={awayTeam}
+                        />
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function BracketTeamButton({
+  fallback,
+  isSelected,
+  onClick,
+  team
+}: {
+  fallback?: string;
+  isSelected: boolean;
+  onClick: () => void;
+  team?: Team;
+}) {
+  return (
+    <button
+      className={[
+        "flex min-h-12 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition",
+        isSelected ? "border-emeraldGlow bg-emeraldGlow/16 text-white" : "border-white/10 bg-pitch/50 text-white/78 hover:border-gold/60"
+      ].join(" ")}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        {team?.flagUrl ? (
+          <Image src={team.flagUrl} alt="" width={28} height={20} className="h-5 w-7 rounded-sm object-cover" />
+        ) : (
+          <span className="h-5 w-7 rounded-sm bg-white/10" />
+        )}
+        <span className="truncate font-black">{team?.name ?? fallback ?? "Por definir"}</span>
+      </span>
+      {isSelected ? <Check className="size-5 shrink-0 text-emeraldGlow" /> : null}
+    </button>
   );
 }
 

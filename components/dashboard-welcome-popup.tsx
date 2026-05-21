@@ -68,6 +68,11 @@ export function DashboardWelcomePopup({ groupName }: { groupName: string }) {
             participante de tu grupo.
           </GuideItem>
 
+          <GuideItem title="Clasificaciones">
+            En Partidos puedes ordenar cada grupo del Mundial del puesto 1 al 4. Es una predicción aparte de los partidos:
+            piensa quiénes pasan, quién sorprende y quién se queda en el camino.
+          </GuideItem>
+
           <GuideItem title="Insignias">
             Son reconocimientos divertidos por momentos especiales: llegar arriba, acertar marcadores o guardar tus primeras
             predicciones.

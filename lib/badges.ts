@@ -3,7 +3,7 @@ import type { ChampionPrediction, Match, MatchResult, Prediction, RankingSnapsho
 export type BadgeId =
   | "five_correct_streak"
   | "world_champion"
-  | "top_scorer"
+  | "two_exact_streak"
   | "round_king"
   | "exact_score"
   | "three_exact_streak"
@@ -51,12 +51,12 @@ export const funBadges: FunBadge[] = [
     status: "active"
   },
   {
-    id: "top_scorer",
+    id: "two_exact_streak",
     emoji: "⚽",
     title: "El diablo sabe más por viejo",
-    description: "Acertó el goleador del torneo.",
+    description: "Acertó 2 marcadores exactos seguidos.",
     category: "visible",
-    status: "registered"
+    status: "active"
   },
   {
     id: "round_king",
@@ -273,6 +273,7 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   }
   if (evaluatedPredictions.some((item) => item.isExactDraw)) add("exact_draw");
   if (hasConsecutive(evaluatedPredictions.map((item) => item.isCorrect), 5)) add("five_correct_streak");
+  if (hasConsecutive(evaluatedPredictions.map((item) => item.isExact), 2)) add("two_exact_streak");
   if (hasConsecutive(evaluatedPredictions.map((item) => item.isExact), 3)) add("three_exact_streak");
   if (hasConsecutive(evaluatedPredictions.map((item) => !item.isCorrect), 5)) add("cold_streak");
 
