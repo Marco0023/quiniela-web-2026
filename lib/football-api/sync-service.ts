@@ -1,3 +1,4 @@
+import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FootballApiProvider, SyncedMatch, SyncedResult, SyncedTeam } from "@/lib/football-api/provider";
@@ -20,6 +21,7 @@ type MatchRow = {
   home_placeholder: string | null;
   away_placeholder: string | null;
   kickoff_at: string;
+  tournament_group: string | null;
   status: Match["status"];
 };
 
@@ -232,6 +234,7 @@ async function scoreMatchPredictions(admin: ReturnType<typeof createAdminClient>
     homePlaceholder: matchRow.home_placeholder ?? undefined,
     awayPlaceholder: matchRow.away_placeholder ?? undefined,
     kickoffAt: matchRow.kickoff_at,
+    tournamentGroup: matchRow.tournament_group,
     status: "finished"
   };
 
@@ -264,6 +267,7 @@ async function scoreMatchPredictions(admin: ReturnType<typeof createAdminClient>
     });
   }
 
+  await scoreCompletedClassificationPredictions(admin);
   await recordRankingSnapshots(admin, matchRow.id);
   return predictionRows?.length ?? 0;
 }
@@ -273,6 +277,7 @@ async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient
     admin.from("profiles").select("id,group_id,role").eq("role", "participant"),
     admin.from("match_predictions").select("user_id,group_id,points_awarded")
   ]);
+  const { data: classificationRows } = await admin.from("group_classification_predictions").select("user_id,app_group_id,points_awarded");
 
   const usersByGroup = new Map<string, { id: string; group_id: string }[]>();
   for (const profile of profileRows ?? []) {
@@ -289,7 +294,10 @@ async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient
         groupId,
         points: (predictionRows ?? [])
           .filter((prediction) => prediction.user_id === user.id)
-          .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0)
+          .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0) +
+          (classificationRows ?? [])
+            .filter((prediction) => prediction.user_id === user.id)
+            .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0)
       }))
       .sort((a, b) => b.points - a.points);
 

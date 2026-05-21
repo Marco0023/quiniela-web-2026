@@ -70,7 +70,7 @@ export function DashboardWelcomePopup({ groupName }: { groupName: string }) {
 
           <GuideItem title="Clasificaciones">
             En Partidos puedes ordenar cada grupo del Mundial del puesto 1 al 4. Es una predicción aparte de los partidos:
-            piensa quiénes pasan, quién sorprende y quién se queda en el camino.
+            si aciertas los dos clasificados ganas 5 puntos, y si clavas las 4 posiciones ganas 12 puntos.
           </GuideItem>
 
           <GuideItem title="Insignias">

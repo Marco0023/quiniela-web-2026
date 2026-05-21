@@ -49,6 +49,7 @@ type MatchRow = {
   home_placeholder: string | null;
   away_placeholder: string | null;
   kickoff_at: string;
+  tournament_group: string | null;
   status: Match["status"];
 };
 
@@ -100,6 +101,8 @@ type ClassificationPredictionRow = {
   app_group_id: string;
   tournament_group: string;
   ordered_team_ids: string[];
+  points_awarded: number;
+  status: GroupClassificationPrediction["status"];
   updated_at: string;
 };
 
@@ -149,6 +152,7 @@ function mapMatch(row: MatchRow): Match {
     homePlaceholder: row.home_placeholder ?? undefined,
     awayPlaceholder: row.away_placeholder ?? undefined,
     kickoffAt: row.kickoff_at,
+    tournamentGroup: row.tournament_group,
     status: row.status
   };
 }
@@ -210,6 +214,8 @@ function mapClassificationPrediction(row: ClassificationPredictionRow): GroupCla
     groupId: row.app_group_id,
     tournamentGroup: row.tournament_group,
     orderedTeamIds: row.ordered_team_ids,
+    pointsAwarded: row.points_awarded,
+    status: row.status,
     updatedAt: row.updated_at
   };
 }
@@ -476,7 +482,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     groupPredictionsResponse,
     championPredictionsResponse,
     rankingSnapshotsResponse,
-    classificationPredictionsResponse
+    classificationPredictionsResponse,
+    groupClassificationPredictionsResponse
   ] = await Promise.all([
     profile.groupId
       ? admin.from("groups").select("id,name,invite_code").eq("id", profile.groupId).maybeSingle<GroupRow>()
@@ -498,6 +505,9 @@ export async function getDashboardData({ requireChampion = true } = {}) {
       : Promise.resolve({ data: [], error: null }),
     profile.groupId
       ? admin.from("group_classification_predictions").select("*").eq("user_id", profile.id)
+      : Promise.resolve({ data: [], error: null }),
+    profile.groupId
+      ? admin.from("group_classification_predictions").select("*").eq("app_group_id", profile.groupId)
       : Promise.resolve({ data: [], error: null })
   ]);
 
@@ -526,13 +536,19 @@ export async function getDashboardData({ requireChampion = true } = {}) {
   const classificationPredictions = classificationPredictionsResponse.data
     ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
+  const groupClassificationPredictions = groupClassificationPredictionsResponse.data
+    ? (groupClassificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
+    : [];
 
   const rankedRows = groupProfiles
     .map((user) => ({
       user,
       points: groupPredictions
         .filter((prediction) => prediction.userId === user.id)
-        .reduce((total, prediction) => total + prediction.pointsAwarded, 0)
+        .reduce((total, prediction) => total + prediction.pointsAwarded, 0) +
+        groupClassificationPredictions
+          .filter((prediction) => prediction.userId === user.id)
+          .reduce((total, prediction) => total + prediction.pointsAwarded, 0)
     }))
     .sort((a, b) => b.points - a.points);
 
@@ -555,6 +571,7 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     groupChampionPredictions,
     groupRankingSnapshots,
     classificationPredictions,
+    groupClassificationPredictions,
     champion,
     ranking
   };
@@ -597,6 +614,7 @@ function getMockDashboardData() {
     ),
     groupRankingSnapshots: [],
     classificationPredictions: [],
+    groupClassificationPredictions: [],
     champion,
     ranking
   };

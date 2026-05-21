@@ -78,6 +78,8 @@ create table if not exists public.group_classification_predictions (
   app_group_id uuid not null references public.groups(id) on delete cascade,
   tournament_group text not null,
   ordered_team_ids uuid[] not null,
+  points_awarded int not null default 0,
+  status text not null default 'pending' check (status in ('pending', 'scored')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, tournament_group)
@@ -163,10 +165,24 @@ select
   p.group_id,
   p.id as user_id,
   p.alias,
-  coalesce(sum(mp.points_awarded), 0)::int as total_points,
+  (
+    coalesce(sum(mp.points_awarded), 0) +
+    coalesce((
+      select sum(gcp.points_awarded)
+      from public.group_classification_predictions gcp
+      where gcp.user_id = p.id
+    ), 0)
+  )::int as total_points,
   rank() over (
     partition by p.group_id
-    order by coalesce(sum(mp.points_awarded), 0) desc
+    order by (
+      coalesce(sum(mp.points_awarded), 0) +
+      coalesce((
+        select sum(gcp.points_awarded)
+        from public.group_classification_predictions gcp
+        where gcp.user_id = p.id
+      ), 0)
+    ) desc
   )::int as rank
 from public.profiles p
 left join public.match_predictions mp on mp.user_id = p.id

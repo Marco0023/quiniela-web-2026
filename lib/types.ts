@@ -50,6 +50,7 @@ export type Match = {
   homePlaceholder?: string;
   awayPlaceholder?: string;
   kickoffAt: string;
+  tournamentGroup?: string | null;
   status: MatchStatus;
 };
 
@@ -91,6 +92,8 @@ export type GroupClassificationPrediction = {
   groupId: string;
   tournamentGroup: string;
   orderedTeamIds: string[];
+  pointsAwarded: number;
+  status: "pending" | "scored";
   updatedAt: string;
 };
 

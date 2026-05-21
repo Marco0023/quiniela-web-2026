@@ -83,7 +83,8 @@ export function HowItWorksButton() {
 
               <InfoBlock title="6. Predice las clasificaciones">
                 En Partidos también puedes ordenar cada grupo según cómo crees que terminará. Arrastra los equipos del
-                puesto 1 al 4. Más adelante esa predicción sumará puntos cuando cierre la fase de grupos.
+                puesto 1 al 4. Aciertas los dos clasificados y ganas 5 puntos; si aciertas las cuatro posiciones exactas,
+                ganas 12 puntos en total. Cada grupo cierra 1 hora antes del primer segundo partido de ese grupo.
               </InfoBlock>
             </div>
           </section>
