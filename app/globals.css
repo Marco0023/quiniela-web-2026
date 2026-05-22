@@ -35,3 +35,61 @@ select {
 ::selection {
   background: rgba(244, 201, 93, 0.35);
 }
+
+.login-light {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(95, 179, 255, 0.1) 28%, transparent 66%);
+  filter: blur(10px);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+  animation: login-light-drift 16s ease-in-out infinite alternate;
+}
+
+.login-light:nth-of-type(2) {
+  animation-duration: 20s;
+  animation-delay: -6s;
+}
+
+.login-light:nth-of-type(3) {
+  animation-duration: 24s;
+  animation-delay: -10s;
+}
+
+.route-loader-ball {
+  animation: route-ball-spin 0.9s linear infinite;
+  filter: drop-shadow(0 0 18px rgba(244, 201, 93, 0.55));
+}
+
+@keyframes login-light-drift {
+  0% {
+    transform: translate3d(-2rem, -1rem, 0) scale(0.95);
+  }
+
+  50% {
+    transform: translate3d(3rem, 2rem, 0) scale(1.08);
+  }
+
+  100% {
+    transform: translate3d(-1rem, 4rem, 0) scale(1.02);
+  }
+}
+
+@keyframes route-ball-spin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-light,
+  .route-loader-ball {
+    animation: none;
+  }
+}

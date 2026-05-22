@@ -18,6 +18,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020817] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(53,129,255,0.24),transparent_32rem),radial-gradient(circle_at_86%_20%,rgba(0,194,255,0.16),transparent_28rem),linear-gradient(135deg,#020817_0%,#041a3d_52%,#061126_100%)]" />
+      <div className="login-light left-[8%] top-[4%]" />
+      <div className="login-light right-[6%] top-[8%]" />
+      <div className="login-light bottom-[10%] left-[36%]" />
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,23,0.34)_1px,transparent_1px),linear-gradient(0deg,rgba(2,8,23,0.34)_1px,transparent_1px)] bg-[size:72px_72px] opacity-25" />
       <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#061b15] via-[#03142f]/40 to-transparent" />
 
@@ -87,13 +90,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             ) : null}
             <form action={login} className="grid gap-4">
               <Field label="Correo electrónico">
-                <input
-                  className={inputClass}
-                  name="email"
-                  placeholder="Ingresa tu correo"
-                  required
-                  type="email"
-                />
+                <input className={inputClass} name="email" placeholder="Ingresa tu correo" required type="email" />
               </Field>
               <Field label="Contraseña">
                 <input
@@ -131,7 +128,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <FooterItem icon={LockKeyhole} title="100% privado" body="Solo personas con el código pueden unirse." />
           <FooterItem icon={ShieldCheck} title="Seguro y confiable" body="Tus datos están protegidos en todo momento." />
           <FooterItem icon={Target} title="Resultados al día" body="Ranking y puntos siempre claros." />
-          <FooterItem icon={Smartphone} title="Diseñado para todos" body="Disfruta la quiniela desde tu celular o computadora." />
+          <FooterItem
+            icon={Smartphone}
+            title="Diseñado para todos"
+            body="Disfruta la quiniela desde tu celular o computadora."
+          />
         </footer>
         <p className="pb-5 text-center text-xs text-white/42">
           Quiniela Mundial 2026. Este sitio no está afiliado con FIFA.

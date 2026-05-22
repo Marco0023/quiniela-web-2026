@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { RouteLoader } from "@/components/route-loader";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}>
+          <RouteLoader />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
