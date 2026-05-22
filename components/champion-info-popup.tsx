@@ -49,7 +49,7 @@ export function ChampionInfoPopup() {
             separada de los partidos.
           </p>
           <p>
-            Si tu campeón gana el torneo, sumas 10 puntos. Si ese equipo llega a la final y además acertaste el ganador de
+            Si tu campeón gana el torneo, sumas 30 puntos. Si ese equipo llega a la final y además acertaste el ganador de
             esa final, recibes un bonus adicional.
           </p>
           <p className="rounded-md border border-gold/20 bg-gold/10 p-3 font-bold text-gold">

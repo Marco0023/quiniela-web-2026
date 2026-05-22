@@ -129,7 +129,7 @@ export function scorePrediction({
     }
 
     if (championPrediction?.teamId && worldChampionTeamId && championPrediction.teamId === worldChampionTeamId) {
-      breakdown.championPoints = 10;
+      breakdown.championPoints = 30;
       if (prediction.predictedWinnerTeamId === result.winnerTeamId) {
         breakdown.championBonusPoints = 5;
       }

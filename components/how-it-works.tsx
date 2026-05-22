@@ -46,7 +46,7 @@ export function HowItWorksButton() {
             <div className="grid gap-4 text-sm leading-6 text-white/72">
               <InfoBlock title="1. Elige tu campeón">
                 Debes escoger un campeón antes de entrar al dashboard. Esa selección se guarda una sola vez y no se puede
-                cambiar. Si tu equipo gana el Mundial, sumas 10 puntos. Si además acertaste el ganador de la final, recibes
+                cambiar. Si tu equipo gana el Mundial, sumas 30 puntos. Si además acertaste el ganador de la final, recibes
                 un bonus adicional.
               </InfoBlock>
 
