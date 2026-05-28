@@ -46,7 +46,7 @@ El objetivo del MVP es tener una plataforma funcional y profesional que sirva co
 ### Integracion externa
 
 - Capa generica `FootballApiProvider`.
-- Proveedor concreto a definir despues.
+- Proveedor concreto implementado: `football-data`, con fallback `mock` para demo/local.
 - API como fuente principal para equipos, partidos, horarios, resultados, estados y banderas.
 - Base local editable por admin como respaldo si la API falla.
 
@@ -191,11 +191,11 @@ Reglas:
 - La seleccion se guarda una sola vez.
 - Nunca puede modificarse.
 - El goleador del torneo queda fuera del MVP.
-- La prediccion de posiciones de grupo queda fuera del MVP.
+- La prediccion de posiciones de grupo fue incorporada como prediccion de clasificacion por grupo.
 
 Puntos:
 
-- Campeon acertado: 10 puntos.
+- Campeon acertado: 30 puntos.
 - Bonus adicional si tambien acierta el ganador de la final: 5 puntos.
 
 ## 8. Predicciones por partido
@@ -343,7 +343,7 @@ No incluido en MVP:
 
 - Notificaciones.
 - Alertas.
-- Badges simbolicos.
+- Badges simbolicos ya estan incorporados como insignias ocultas/visibles.
 
 ## 11. Historial de usuario
 
@@ -806,14 +806,14 @@ Incluye:
 - Sincronizacion automatica y manual.
 - Responsive movil.
 - Deploy publico.
+- Prediccion de clasificacion por grupo.
+- Badges simbolicos/insignias.
 
 No incluye en MVP:
 
 - Goleador.
-- Prediccion de posiciones de grupo.
 - Notificaciones.
 - Alertas.
-- Badges.
 - Desactivacion de usuarios.
 - Reset de contrasena desde la app.
 - Creacion dinamica de grupos.

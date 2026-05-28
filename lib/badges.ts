@@ -14,6 +14,20 @@ export type BadgeId =
   | "unique_exact"
   | "missed_three_predictions"
   | "failed_round"
+  | "failed_round_cry_valley"
+  | "failed_round_no_hits_today"
+  | "failed_round_faith_no_hits"
+  | "failed_round_complicated_day"
+  | "failed_round_missing_coffee"
+  | "failed_round_world_mysteries"
+  | "failed_round_feelings_no_points"
+  | "failed_round_salado_sirenita"
+  | "failed_round_cachapa_budare"
+  | "correct_prediction_in_round"
+  | "correct_round_warming_up"
+  | "correct_round_step_by_step"
+  | "correct_round_balanced"
+  | "all_group_stage_predictions_saved"
   | "two_unique_exact_round"
   | "first_prediction_1"
   | "first_prediction_2"
@@ -112,7 +126,7 @@ export const funBadges: FunBadge[] = [
     title: "Sobreviviente",
     description: "Salió del último lugar.",
     category: "hidden",
-    status: "registered"
+    status: "active"
   },
   {
     id: "unique_exact",
@@ -135,6 +149,118 @@ export const funBadges: FunBadge[] = [
     emoji: "😂",
     title: "Más perdido que Adán el Día de las Madres",
     description: "Fallaste todos los partidos de una jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_cry_valley",
+    emoji: "😭",
+    title: "A llorar pal valle",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_no_hits_today",
+    emoji: "😂",
+    title: "Hoy no pegaste ni una.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_faith_no_hits",
+    emoji: "🥲",
+    title: "Con fe… pero sin aciertos.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_complicated_day",
+    emoji: "🌧️",
+    title: "Jornada complicada hasta para los expertos.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_missing_coffee",
+    emoji: "☕",
+    title: "Capaz faltó café antes de predecir.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_world_mysteries",
+    emoji: "🌎",
+    title: "El Mundial y sus misterios.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_feelings_no_points",
+    emoji: "🥹",
+    title: "Tus predicciones dieron sentimientos, no puntos.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_salado_sirenita",
+    emoji: "🧜‍♀️",
+    title: "Más salado que la sirenita",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "failed_round_cachapa_budare",
+    emoji: "🫓",
+    title: "Te dieron más vueltas que cachapa en budare.",
+    description: "No acertaste ninguna predicción de la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "correct_prediction_in_round",
+    emoji: "😎",
+    title: "Ahhh pero tu si sabe",
+    description: "Acertar una predicción en la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "correct_round_warming_up",
+    emoji: "🔥",
+    title: "Calentando motores.",
+    description: "Acertar una predicción en la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "correct_round_step_by_step",
+    emoji: "🐢",
+    title: "Paso a paso también se llega.",
+    description: "Acertar una predicción en la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "correct_round_balanced",
+    emoji: "😅",
+    title: "Ni tan tan… ni muy muy.",
+    description: "Acertar una predicción en la jornada.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "all_group_stage_predictions_saved",
+    emoji: "🏎️",
+    title: "Francesco es demasiado rapido",
+    description: "Guardar todas las predicciones de la fase de grupos.",
     category: "hidden",
     status: "active"
   },
@@ -208,11 +334,31 @@ export const funBadges: FunBadge[] = [
     title: "¿Ya se comieron los tequeños?",
     description: "Volver al top 3 después de estar fuera.",
     category: "hidden",
-    status: "registered"
+    status: "active"
   }
 ];
 
 export const visibleBadgePreview = funBadges.filter((badge) => badge.category === "visible");
+
+const failedRoundBadgeIds = [
+  "failed_round",
+  "failed_round_cry_valley",
+  "failed_round_no_hits_today",
+  "failed_round_faith_no_hits",
+  "failed_round_complicated_day",
+  "failed_round_missing_coffee",
+  "failed_round_world_mysteries",
+  "failed_round_feelings_no_points",
+  "failed_round_salado_sirenita",
+  "failed_round_cachapa_budare"
+] satisfies BadgeId[];
+
+const correctRoundBadgeIds = [
+  "correct_prediction_in_round",
+  "correct_round_warming_up",
+  "correct_round_step_by_step",
+  "correct_round_balanced"
+] satisfies BadgeId[];
 
 type RankingRow = {
   user: { id: string };
@@ -285,7 +431,15 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   if (hasUniqueExact(input.userId, input.matches, input.results, input.predictions)) add("unique_exact");
   if (hasTwoUniqueExactInRound(input.userId, input.matches, input.results, input.predictions)) add("two_unique_exact_round");
   if (hasPerfectRound(input.userId, input.matches, input.results, input.predictions)) add("perfect_round");
-  if (hasFailedRound(input.userId, input.matches, input.results, input.predictions)) add("failed_round");
+  const correctRoundKey = correctRoundForUser(input.userId, input.matches, input.results, input.predictions);
+  if (correctRoundKey) add(pickBadgeId(correctRoundBadgeIds, `${input.userId}-${correctRoundKey}-correct-round`));
+
+  const failedRoundKey = failedRoundForUser(input.userId, input.matches, input.results, input.predictions);
+  if (failedRoundKey) add(pickBadgeId(failedRoundBadgeIds, `${input.userId}-${failedRoundKey}-failed-round`));
+
+  if (hasAllGroupStagePredictions(input.userId, input.matches, input.predictions)) {
+    add("all_group_stage_predictions_saved");
+  }
 
   const finishedMatchIds = input.results.map((result) => result.matchId);
   const missedPredictions = finishedMatchIds.filter(
@@ -448,14 +602,37 @@ function hasPerfectRound(userId: string, matches: Match[], results: MatchResult[
   });
 }
 
-function hasFailedRound(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
-  return roundKeys(matches, results).some((key) => {
+function correctRoundForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  return roundKeys(matches, results).find((key) => {
+    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id));
+    const userRoundPredictions = predictions.filter(
+      (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
+    );
+    return userRoundPredictions.some((prediction) => {
+      const match = matches.find((item) => item.id === prediction.matchId);
+      const result = results.find((item) => item.matchId === prediction.matchId);
+      return Boolean(match && result && isCorrectMatch(match, result, prediction));
+    });
+  });
+}
+
+function failedRoundForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  return roundKeys(matches, results).find((key) => {
     const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id));
     const userRoundPredictions = predictions.filter(
       (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
     );
     return userRoundPredictions.length > 0 && userRoundPredictions.every((prediction) => prediction.pointsAwarded === 0);
   });
+}
+
+function hasAllGroupStagePredictions(userId: string, matches: Match[], predictions: Prediction[]) {
+  const groupStageMatches = matches.filter((match) => match.phase === "group_stage");
+  if (groupStageMatches.length === 0) return false;
+
+  return groupStageMatches.every((match) =>
+    predictions.some((prediction) => prediction.userId === userId && prediction.matchId === match.id)
+  );
 }
 
 function roundKeys(matches: Match[], results: MatchResult[]) {
