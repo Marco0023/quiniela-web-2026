@@ -35,6 +35,7 @@ type GroupRow = {
 
 type TeamRow = {
   id: string;
+  api_id?: string | null;
   name: string;
   short_name: string;
   flag_url: string | null;
@@ -142,6 +143,27 @@ function sortTeamsBySpanishName(teams: Team[]) {
   return [...teams].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 }
 
+function uniqueTeamRowsBySpanishName(rows: TeamRow[]) {
+  const teams = new Map<string, TeamRow>();
+
+  for (const row of rows) {
+    const key = row.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+    const current = teams.get(key);
+    const currentIsApiTeam = current?.api_id?.startsWith("football-data:");
+    const nextIsApiTeam = row.api_id?.startsWith("football-data:");
+
+    if (!current || (!currentIsApiTeam && nextIsApiTeam)) {
+      teams.set(key, row);
+    }
+  }
+
+  return [...teams.values()];
+}
+
 function mapMatch(row: MatchRow): Match {
   return {
     id: row.id,
@@ -239,9 +261,9 @@ export async function getCurrentProfile() {
 export async function getTeams() {
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin.from("teams").select("id,name,short_name,flag_url").order("name");
+    const { data, error } = await admin.from("teams").select("id,api_id,name,short_name,flag_url").order("name");
     if (error || !data || data.length === 0) return sortTeamsBySpanishName(mockTeams);
-    return sortTeamsBySpanishName((data as TeamRow[]).map(mapTeam));
+    return sortTeamsBySpanishName(uniqueTeamRowsBySpanishName(data as TeamRow[]).map(mapTeam));
   } catch {
     return sortTeamsBySpanishName(mockTeams);
   }
