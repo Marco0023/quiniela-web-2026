@@ -22,7 +22,7 @@ export const WORLD_CUP_GROUPS: WorldCupGroup[] = [
 const TEAM_ALIASES: Record<string, string[]> = {
   "Arabia Saudita": ["Arabia Saudí", "Saudi Arabia"],
   "Bosnia y Herzegovina": ["Bosnia-Herzegovina", "Bosnia and Herzegovina", "Bosnia Herzegovina"],
-  "Cabo Verde": ["Islas de Cabo Verde", "Cape Verde", "Cabo Verde Islands"],
+  "Cabo Verde": ["Islas de Cabo Verde", "Cape Verde", "Cape Verde Islands", "Cabo Verde Islands"],
   Catar: ["Qatar"],
   Chequia: ["República Checa", "Czechia", "Czech Republic"],
   "Costa de Marfil": ["Ivory Coast", "Cote d'Ivoire", "Côte d’Ivoire"],

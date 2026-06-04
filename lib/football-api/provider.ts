@@ -134,6 +134,7 @@ const SPANISH_TEAM_NAMES: Record<string, string> = {
   brazil: "Brasil",
   canada: "Canadá",
   "cape verde": "Cabo Verde",
+  "cape verde islands": "Cabo Verde",
   chile: "Chile",
   "china pr": "China",
   colombia: "Colombia",

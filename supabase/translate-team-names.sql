@@ -9,6 +9,7 @@ set name = case name
   when 'Brazil' then 'Brasil'
   when 'Canada' then 'Canadá'
   when 'Cape Verde' then 'Cabo Verde'
+  when 'Cape Verde Islands' then 'Cabo Verde'
   when 'Chile' then 'Chile'
   when 'China PR' then 'China'
   when 'Colombia' then 'Colombia'
