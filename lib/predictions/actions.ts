@@ -123,5 +123,5 @@ export async function savePrediction(formData: FormData) {
   revalidatePath("/partidos");
   revalidatePath(`/partidos/${matchId}`);
   revalidatePath("/historial");
-  redirect(`/partidos/${matchId}?saved=1`);
+  redirect("/partidos?saved=prediccion");
 }

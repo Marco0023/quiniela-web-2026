@@ -15,7 +15,9 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
       <SectionHeader eyebrow="Mundial 2026" title="Partidos y predicciones" />
       {status.error ? <p className="mb-4 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{status.error}</p> : null}
       {status.saved ? (
-        <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">Clasificación guardada.</p>
+        <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">
+          {status.saved === "prediccion" ? "Predicción guardada. Puedes seguir con el próximo partido." : "Clasificación guardada."}
+        </p>
       ) : null}
       <MatchesTabs
         classificationPredictions={data.classificationPredictions}
