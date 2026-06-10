@@ -13,7 +13,7 @@ function text(formData: FormData, key: string) {
 
 export async function saveGroupClassificationPrediction(formData: FormData) {
   const profile = await getCurrentProfile();
-  if (!profile.groupId) redirect("/partidos?error=Grupo no encontrado");
+  if (!profile.groupId) redirect("/partidos?tab=classification&error=Grupo no encontrado");
 
   const tournamentGroup = text(formData, "tournamentGroup");
   const orderedTeamIds = text(formData, "orderedTeamIds")
@@ -22,7 +22,7 @@ export async function saveGroupClassificationPrediction(formData: FormData) {
     .filter(Boolean);
 
   if (!tournamentGroup || orderedTeamIds.length !== 4 || new Set(orderedTeamIds).size !== 4) {
-    redirect("/partidos?error=Clasificación incompleta");
+    redirect("/partidos?tab=classification&error=Clasificación incompleta");
   }
 
   const admin = createAdminClient();
@@ -54,7 +54,7 @@ export async function saveGroupClassificationPrediction(formData: FormData) {
   })) satisfies MatchResult[];
 
   if (isClassificationLocked(tournamentGroup, matches)) {
-    redirect("/partidos?error=La clasificación de este grupo ya está cerrada.");
+    redirect("/partidos?tab=classification&error=La clasificación de este grupo ya está cerrada.");
   }
 
   const score = scoreClassificationPrediction({
@@ -79,10 +79,10 @@ export async function saveGroupClassificationPrediction(formData: FormData) {
     { onConflict: "user_id,tournament_group" }
   );
 
-  if (error) redirect(`/partidos?error=${encodeURIComponent("No se pudo guardar la clasificación.")}`);
+  if (error) redirect(`/partidos?tab=classification&error=${encodeURIComponent("No se pudo guardar la clasificación.")}`);
 
   revalidatePath("/partidos");
   revalidatePath("/dashboard");
   revalidatePath("/ranking");
-  redirect("/partidos?saved=clasificacion");
+  redirect(`/partidos?tab=classification&saved=clasificacion&group=${encodeURIComponent(tournamentGroup)}`);
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { inputClass } from "@/components/ui";
 import { savePrediction } from "@/lib/predictions/actions";
@@ -9,8 +10,10 @@ import { getPredictionType, isPredictionLocked, validateScoreConsistency } from 
 import type { Match, Outcome, Prediction, Team } from "@/lib/types";
 
 export function PredictionForm({ match, teams, prediction }: { match: Match; teams: Team[]; prediction?: Prediction }) {
+  const router = useRouter();
   const predictionType = getPredictionType(match);
   const locked = isPredictionLocked(match.kickoffAt);
+  const [saveState, formAction, isPending] = useActionState(savePrediction, null);
   const [outcome, setOutcome] = useState<Outcome>(prediction?.predictedOutcome ?? "home");
   const [homeScore, setHomeScore] = useState(prediction?.predictedHomeScore?.toString() ?? "");
   const [awayScore, setAwayScore] = useState(prediction?.predictedAwayScore?.toString() ?? "");
@@ -26,9 +29,29 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
     () => validateScoreConsistency(outcome, parsedHome, parsedAway),
     [outcome, parsedAway, parsedHome]
   );
+  const isSavedRedirecting = saveState?.status === "saved";
+
+  useEffect(() => {
+    if (!saveState?.redirectTo) return;
+
+    const timeout = window.setTimeout(() => {
+      router.push(saveState.redirectTo);
+    }, 1000);
+
+    return () => window.clearTimeout(timeout);
+  }, [router, saveState]);
 
   return (
-    <form action={savePrediction} className="grid gap-4">
+    <form action={formAction} className="grid gap-4">
+      {isSavedRedirecting ? (
+        <div className="fixed inset-0 z-[95] grid place-items-center bg-[#020817]/72 px-4 backdrop-blur-sm" aria-live="polite">
+          <div className="grid max-w-sm justify-items-center gap-3 rounded-lg border border-emeraldGlow/30 bg-[#081629]/95 px-6 py-6 text-center shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+            <div className="grid size-12 place-items-center rounded-full bg-emeraldGlow/18 text-2xl">✓</div>
+            <p className="text-lg font-black text-white">Predicción guardada</p>
+            <p className="text-sm leading-6 text-emeraldGlow">Volviendo a todos los partidos.</p>
+          </div>
+        </div>
+      ) : null}
       <input name="matchId" type="hidden" value={match.id} />
       <input name="predictedOutcome" type="hidden" value={outcome} />
       <input name="predictedWinnerTeamId" type="hidden" value={winnerTeamId} />
@@ -138,11 +161,11 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
 
       <button
         type="submit"
-        disabled={!scoreIsValid || locked}
+        disabled={!scoreIsValid || locked || isPending || isSavedRedirecting}
         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-gold px-4 font-black text-pitch transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Save className="size-4" />
-        {locked ? "Predicción cerrada" : "Guardar predicción"}
+        {locked ? "Predicción cerrada" : isPending || isSavedRedirecting ? "Guardando..." : "Guardar predicción"}
       </button>
       <p className="text-sm leading-6 text-white/50">
         Guarda tu predicción con tranquilidad. Si después te arrepientes, puedes modificarla hasta 5 minutos antes de que

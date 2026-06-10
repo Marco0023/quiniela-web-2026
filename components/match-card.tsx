@@ -24,9 +24,10 @@ export function MatchCard({
   const locked = isPredictionLocked(match.kickoffAt);
   const showScore = match.status === "finished" && result;
   const actionLabel = locked && !prediction ? "Cerrado" : prediction ? "Ver" : "Predecir";
+  const isGroupPredictionSaved = match.phase === "group_stage" && Boolean(prediction);
 
   return (
-    <Card className="grid gap-4">
+    <Card className={`grid gap-4 ${isGroupPredictionSaved ? "border-emeraldGlow/55 shadow-[0_0_0_1px_rgba(74,222,128,0.22),0_18px_70px_rgba(16,185,129,0.12)]" : ""}`}>
       <div className="flex items-center justify-between gap-3">
         <Badge tone={match.status === "finished" ? "green" : locked ? "gold" : "neutral"}>
           {match.status === "finished" ? "Finalizado" : locked ? "Cerrado" : statusLabel(match.status)}
@@ -55,9 +56,15 @@ export function MatchCard({
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3">
-        <p className="min-w-0 text-sm text-white/62">
-          {prediction ? "Predicción guardada" : locked ? "Cerrado sin predicción" : "Pendiente por predecir"}
-        </p>
+        {isGroupPredictionSaved ? (
+          <p className="min-w-0 rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-2 text-sm font-bold text-emeraldGlow">
+            Tu predicción ya quedó guardada.
+          </p>
+        ) : (
+          <p className="min-w-0 text-sm text-white/62">
+            {prediction ? "Predicción guardada" : locked ? "Cerrado sin predicción" : "Pendiente por predecir"}
+          </p>
+        )}
         <Link
           href={`/partidos/${match.id}`}
           className="inline-flex shrink-0 items-center gap-2 rounded-md bg-gold px-3 py-2 text-sm font-black text-pitch transition hover:bg-white"

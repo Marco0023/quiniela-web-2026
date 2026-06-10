@@ -1,14 +1,20 @@
 import { AppShell } from "@/components/app-shell";
 import { MatchesTabs } from "@/components/matches-tabs";
+import type { MatchesTab } from "@/components/matches-tabs";
 import { SectionHeader } from "@/components/ui";
 import { getDashboardData } from "@/lib/repository";
 import { namesForTeamLookup, normalizeLookupName, WORLD_CUP_GROUPS } from "@/lib/world-cup-groups";
 import type { Team } from "@/lib/types";
 
-export default async function MatchesPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string }> }) {
+export default async function MatchesPage({
+  searchParams
+}: {
+  searchParams: Promise<{ error?: string; group?: string; saved?: string; tab?: string }>;
+}) {
   const status = await searchParams;
   const data = await getDashboardData();
   const classificationGroups = resolveClassificationGroups(data.teams);
+  const initialTab = parseTab(status.tab);
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
@@ -22,14 +28,20 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
       <MatchesTabs
         classificationPredictions={data.classificationPredictions}
         groups={classificationGroups}
+        initialTab={initialTab}
         matches={data.matches}
         predictions={data.predictions}
         results={data.results}
+        savedGroup={status.group}
         teams={data.teams}
         timezone={data.profile.timezone}
       />
     </AppShell>
   );
+}
+
+function parseTab(tab?: string): MatchesTab {
+  return tab === "classification" || tab === "knockout" || tab === "finals" ? tab : "matches";
 }
 
 function resolveClassificationGroups(teams: Team[]) {

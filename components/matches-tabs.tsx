@@ -21,24 +21,30 @@ type ClassificationGroup = Omit<WorldCupGroup, "teams"> & {
   teams: ClassificationTeam[];
 };
 
+export type MatchesTab = "matches" | "classification" | "knockout" | "finals";
+
 export function MatchesTabs({
   classificationPredictions,
   groups,
+  initialTab = "matches",
   matches,
   predictions,
   results,
+  savedGroup,
   teams,
   timezone
 }: {
   classificationPredictions: GroupClassificationPrediction[];
   groups: ClassificationGroup[];
+  initialTab?: MatchesTab;
   matches: Match[];
   predictions: Prediction[];
   results: MatchResult[];
+  savedGroup?: string;
   teams: Team[];
   timezone: string;
 }) {
-  const [activeTab, setActiveTab] = useState<"matches" | "classification" | "knockout" | "finals">("matches");
+  const [activeTab, setActiveTab] = useState<MatchesTab>(initialTab);
 
   return (
     <div className="grid gap-5">
@@ -61,7 +67,7 @@ export function MatchesTabs({
         <MatchesPanel matches={matches} predictions={predictions} results={results} teams={teams} timezone={timezone} />
       ) : null}
       {activeTab === "classification" ? (
-        <ClassificationPanel groups={groups} matches={matches} predictions={classificationPredictions} />
+        <ClassificationPanel groups={groups} matches={matches} predictions={classificationPredictions} savedGroup={savedGroup} />
       ) : null}
       {activeTab === "knockout" ? (
         <MatchesByPhasePanel
@@ -204,11 +210,13 @@ function MatchGrid({
 function ClassificationPanel({
   groups,
   matches,
-  predictions
+  predictions,
+  savedGroup
 }: {
   groups: ClassificationGroup[];
   matches: Match[];
   predictions: GroupClassificationPrediction[];
+  savedGroup?: string;
 }) {
   const initialOrders = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -268,13 +276,27 @@ function ClassificationPanel({
           const orderedIds = currentTeams.map((team) => team.id).filter((id): id is string => Boolean(id));
           const isComplete = orderedIds.length === 4;
           const saved = predictions.find((prediction) => prediction.tournamentGroup === group.code);
+          const isSaved = Boolean(saved);
+          const wasJustSaved = savedGroup === group.code;
           const closeAt = classificationCloseAt(group.code, matches);
           const locked = isClassificationLocked(group.code, matches);
 
           return (
-            <Card key={group.code} className="overflow-hidden p-0">
+            <Card
+              key={group.code}
+              className={`overflow-hidden p-0 ${
+                isSaved ? "border-emeraldGlow/55 shadow-[0_0_0_1px_rgba(74,222,128,0.22),0_18px_70px_rgba(16,185,129,0.12)]" : ""
+              }`}
+            >
               <div className="border-b border-white/10 px-4 py-4">
-                <h3 className="text-xl font-black text-ink">{group.name}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-xl font-black text-ink">{group.name}</h3>
+                  {isSaved ? (
+                    <span className="rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-2 py-1 text-xs font-black text-emeraldGlow">
+                      {wasJustSaved ? "Tu predicción está guardada." : "Predicción guardada."}
+                    </span>
+                  ) : null}
+                </div>
                 <p className="mt-1 text-xs font-bold text-white/45">
                   {locked ? "Clasificación cerrada" : closeAt ? `Cierra: ${new Date(closeAt).toLocaleString("es")}` : "Cierre por definir"}
                   {saved ? ` · ${saved.pointsAwarded} pts` : ""}

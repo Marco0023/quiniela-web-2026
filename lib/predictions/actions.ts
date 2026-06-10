@@ -7,6 +7,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Match, Outcome } from "@/lib/types";
 
+export type SavePredictionState = {
+  status: "saved";
+  redirectTo: string;
+} | null;
+
 function value(formData: FormData, key: string) {
   const raw = formData.get(key);
   return String(raw ?? "").trim();
@@ -23,7 +28,7 @@ function fail(matchId: string, message: string): never {
   redirect(`/partidos/${matchId}?error=${encodeURIComponent(message)}`);
 }
 
-export async function savePrediction(formData: FormData) {
+export async function savePrediction(_state: SavePredictionState, formData: FormData): Promise<SavePredictionState> {
   const matchId = value(formData, "matchId");
   if (!matchId) redirect("/partidos");
 
@@ -123,5 +128,12 @@ export async function savePrediction(formData: FormData) {
   revalidatePath("/partidos");
   revalidatePath(`/partidos/${matchId}`);
   revalidatePath("/historial");
-  redirect("/partidos?saved=prediccion");
+  if (predictionType === "group_stage") {
+    return {
+      status: "saved",
+      redirectTo: "/partidos?saved=prediccion"
+    };
+  }
+
+  redirect(`/partidos/${matchId}?saved=1`);
 }
