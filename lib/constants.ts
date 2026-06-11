@@ -27,6 +27,7 @@ export const TIMEZONE_OPTIONS = [
   { country: "Argentina", timezone: "America/Argentina/Buenos_Aires" },
   { country: "Chile", timezone: "America/Santiago" },
   { country: "Colombia", timezone: "America/Bogota" },
+  { country: "España", timezone: "Europe/Madrid" },
   { country: "Estados Unidos", timezone: "America/New_York" },
   { country: "Mexico", timezone: "America/Mexico_City" },
   { country: "Venezuela", timezone: "America/Caracas" }
