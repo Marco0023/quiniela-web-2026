@@ -63,6 +63,7 @@ export type MatchResult = {
   winnerTeamId: string | null;
   wentExtraTime: boolean | null;
   wentPenalties: boolean | null;
+  updatedAt?: string;
 };
 
 export type Prediction = {
@@ -104,6 +105,16 @@ export type RankingSnapshot = {
   rank: number;
   points: number;
   totalParticipants: number;
+  createdAt: string;
+};
+
+export type BadgeEvent = {
+  id: string;
+  groupId: string;
+  userId: string;
+  matchId: string | null;
+  badgeId: string;
+  eventKey: string;
   createdAt: string;
 };
 

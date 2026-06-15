@@ -1,4 +1,5 @@
 import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
+import { recordBadgeEventsForMatch } from "@/lib/badge-events";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FootballApiProvider, SyncedMatch, SyncedResult, SyncedTeam } from "@/lib/football-api/provider";
@@ -269,6 +270,7 @@ async function scoreMatchPredictions(admin: ReturnType<typeof createAdminClient>
 
   await scoreCompletedClassificationPredictions(admin);
   await recordRankingSnapshots(admin, matchRow.id);
+  await recordBadgeEventsForMatch(admin, matchRow.id);
   return predictionRows?.length ?? 0;
 }
 

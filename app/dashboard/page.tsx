@@ -7,7 +7,7 @@ import { MatchCard } from "@/components/match-card";
 import { RankingTable } from "@/components/ranking-table";
 import { TodayMatches } from "@/components/today-matches";
 import { Badge, Card, SectionHeader } from "@/components/ui";
-import { recentBadgesForUser } from "@/lib/badges";
+import { getBadgeById } from "@/lib/badges";
 import { getDashboardData } from "@/lib/repository";
 import { isPredictionLocked } from "@/lib/scoring";
 
@@ -19,18 +19,16 @@ export default async function DashboardPage() {
   );
   const groupName = data.group?.name ?? "tu grupo";
   const currentRanking = data.ranking.find((row) => row.user.id === data.profile.id);
-  const finalMatch = data.matches.find((match) => match.phase === "final");
-  const finalResult = finalMatch ? data.results.find((result) => result.matchId === finalMatch.id) : null;
-  const recentBadges = recentBadgesForUser({
-    userId: data.profile.id,
-    ranking: data.ranking,
-    matches: data.matches,
-    results: data.results,
-    predictions: data.groupPredictions,
-    championPredictions: data.groupChampionPredictions,
-    rankingSnapshots: data.groupRankingSnapshots,
-    worldChampionTeamId: finalResult?.winnerTeamId
-  });
+  const badgesByUser = data.activeBadgeEvents.reduce<Record<string, NonNullable<ReturnType<typeof getBadgeById>>[]>>(
+    (items, event) => {
+      const badge = getBadgeById(event.badgeId as Parameters<typeof getBadgeById>[0]);
+      if (!badge) return items;
+      items[event.userId] = [...(items[event.userId] ?? []), badge];
+      return items;
+    },
+    {}
+  );
+  const recentBadges = badgesByUser[data.profile.id] ?? [];
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
@@ -101,7 +99,7 @@ export default async function DashboardPage() {
         <section className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
           <div>
             <SectionHeader eyebrow="Grupo" title="Ranking completo" />
-            <RankingTable ranking={data.ranking} currentUserId={data.profile.id} />
+            <RankingTable ranking={data.ranking} currentUserId={data.profile.id} badgesByUser={badgesByUser} />
           </div>
           <div className="grid gap-5">
             <div>

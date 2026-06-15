@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
   ChampionPrediction,
+  BadgeEvent,
   Group,
   GroupClassificationPrediction,
   Match,
@@ -85,6 +86,7 @@ type ResultRow = {
   winner_team_id: string | null;
   went_extra_time: boolean | null;
   went_penalties: boolean | null;
+  updated_at?: string;
 };
 
 type RankingSnapshotRow = {
@@ -105,6 +107,16 @@ type ClassificationPredictionRow = {
   points_awarded: number;
   status: GroupClassificationPrediction["status"];
   updated_at: string;
+};
+
+type BadgeEventRow = {
+  id: string;
+  group_id: string;
+  user_id: string;
+  match_id: string | null;
+  badge_id: string;
+  event_key: string;
+  created_at: string;
 };
 
 function mapProfile(row: ProfileRow): Profile {
@@ -214,7 +226,8 @@ function mapResult(row: ResultRow): MatchResult {
     awayScoreFinal: row.away_score_final,
     winnerTeamId: row.winner_team_id,
     wentExtraTime: row.went_extra_time,
-    wentPenalties: row.went_penalties
+    wentPenalties: row.went_penalties,
+    updatedAt: row.updated_at
   };
 }
 
@@ -239,6 +252,18 @@ function mapClassificationPrediction(row: ClassificationPredictionRow): GroupCla
     pointsAwarded: row.points_awarded,
     status: row.status,
     updatedAt: row.updated_at
+  };
+}
+
+function mapBadgeEvent(row: BadgeEventRow): BadgeEvent {
+  return {
+    id: row.id,
+    groupId: row.group_id,
+    userId: row.user_id,
+    matchId: row.match_id,
+    badgeId: row.badge_id,
+    eventKey: row.event_key,
+    createdAt: row.created_at
   };
 }
 
@@ -505,7 +530,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     championPredictionsResponse,
     rankingSnapshotsResponse,
     classificationPredictionsResponse,
-    groupClassificationPredictionsResponse
+    groupClassificationPredictionsResponse,
+    badgeEventsResponse
   ] = await Promise.all([
     profile.groupId
       ? admin.from("groups").select("id,name,invite_code").eq("id", profile.groupId).maybeSingle<GroupRow>()
@@ -530,6 +556,9 @@ export async function getDashboardData({ requireChampion = true } = {}) {
       : Promise.resolve({ data: [], error: null }),
     profile.groupId
       ? admin.from("group_classification_predictions").select("*").eq("app_group_id", profile.groupId)
+      : Promise.resolve({ data: [], error: null }),
+    profile.groupId
+      ? admin.from("badge_events").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null })
   ]);
 
@@ -561,6 +590,11 @@ export async function getDashboardData({ requireChampion = true } = {}) {
   const groupClassificationPredictions = groupClassificationPredictionsResponse.data
     ? (groupClassificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
+  const badgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const latestResult = [...results]
+    .filter((result) => result.updatedAt)
+    .sort((a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime())[0];
+  const activeBadgeEvents = latestResult ? badgeEvents.filter((event) => event.matchId === latestResult.matchId) : [];
 
   const rankedRows = groupProfiles
     .map((user) => ({
@@ -594,6 +628,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     groupRankingSnapshots,
     classificationPredictions,
     groupClassificationPredictions,
+    badgeEvents,
+    activeBadgeEvents,
     champion,
     ranking
   };
@@ -637,6 +673,8 @@ function getMockDashboardData() {
     groupRankingSnapshots: [],
     classificationPredictions: [],
     groupClassificationPredictions: [],
+    badgeEvents: [],
+    activeBadgeEvents: [],
     champion,
     ranking
   };

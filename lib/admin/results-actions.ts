@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminProfile } from "@/lib/admin/auth";
+import { recordBadgeEventsForMatch } from "@/lib/badge-events";
 import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -184,6 +185,7 @@ export async function saveMatchResult(formData: FormData) {
 
   const classificationPredictionsScored = await scoreCompletedClassificationPredictions(admin);
   await recordRankingSnapshots(admin, matchId);
+  await recordBadgeEventsForMatch(admin, matchId);
 
   await admin.from("sync_logs").insert({
     provider: "manual",
