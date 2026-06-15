@@ -57,11 +57,27 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
               <input name="matchId" type="hidden" value={match.id} />
               <label className="grid gap-1 text-xs font-bold text-white/60">
                 Local 90 min
-                <input className={inputClass} defaultValue={result?.homeScore90 ?? ""} min={0} name="homeScore90" type="number" />
+                <input
+                  className={inputClass}
+                  defaultValue={result?.homeScore90 ?? ""}
+                  inputMode="numeric"
+                  min={0}
+                  name="homeScore90"
+                  pattern="[0-9]*"
+                  type="number"
+                />
               </label>
               <label className="grid gap-1 text-xs font-bold text-white/60">
                 Visitante 90 min
-                <input className={inputClass} defaultValue={result?.awayScore90 ?? ""} min={0} name="awayScore90" type="number" />
+                <input
+                  className={inputClass}
+                  defaultValue={result?.awayScore90 ?? ""}
+                  inputMode="numeric"
+                  min={0}
+                  name="awayScore90"
+                  pattern="[0-9]*"
+                  type="number"
+                />
               </label>
               <label className="grid gap-1 text-xs font-bold text-white/60 md:col-span-2">
                 Ganador / avanza

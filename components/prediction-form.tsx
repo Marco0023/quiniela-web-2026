@@ -253,8 +253,10 @@ function ScoreFields({
         <input
           className={inputClass}
           disabled={disabled}
+          inputMode="numeric"
           min={0}
           name="predictedHomeScore"
+          pattern="[0-9]*"
           type="number"
           value={homeScore}
           onChange={(event) => setHomeScore(event.target.value)}
@@ -266,8 +268,10 @@ function ScoreFields({
         <input
           className={inputClass}
           disabled={disabled}
+          inputMode="numeric"
           min={0}
           name="predictedAwayScore"
+          pattern="[0-9]*"
           type="number"
           value={awayScore}
           onChange={(event) => setAwayScore(event.target.value)}
