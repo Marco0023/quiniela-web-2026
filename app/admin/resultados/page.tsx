@@ -1,4 +1,5 @@
 import { RefreshCw } from "lucide-react";
+import { AdminResultSubmitButton } from "@/components/admin-result-submit-button";
 import { AppShell } from "@/components/app-shell";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, inputClass, SectionHeader } from "@/components/ui";
@@ -104,9 +105,7 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
                   <option value="true">Sí</option>
                 </select>
               </label>
-              <button className="min-h-11 rounded-md bg-gold px-4 font-black text-pitch md:col-span-6" type="submit">
-                Guardar resultado
-              </button>
+              <AdminResultSubmitButton />
             </form>
           </Card>
           );

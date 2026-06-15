@@ -36,7 +36,10 @@ export type BadgeId =
   | "first_exact_2"
   | "best_single_match"
   | "exact_draw"
-  | "back_to_top_three";
+  | "back_to_top_three"
+  | "goal_difference_only"
+  | "two_goal_difference_hits"
+  | "underdog_pick";
 
 export type FunBadge = {
   id: BadgeId;
@@ -52,7 +55,7 @@ export const funBadges: FunBadge[] = [
     id: "five_correct_streak",
     emoji: "🔥",
     title: "Soy muy buenoo!!",
-    description: "Acertaste 5 partidos consecutivos.",
+    description: "Acertaste 2 partidos consecutivos.",
     category: "hidden",
     status: "active"
   },
@@ -68,7 +71,7 @@ export const funBadges: FunBadge[] = [
     id: "two_exact_streak",
     emoji: "⚽",
     title: "El diablo sabe más por viejo",
-    description: "Acertó 2 marcadores exactos seguidos.",
+    description: "Sacaste 6 puntos en 2 partidos consecutivos.",
     category: "visible",
     status: "active"
   },
@@ -84,7 +87,7 @@ export const funBadges: FunBadge[] = [
     id: "exact_score",
     emoji: "🎯",
     title: "Precisión Absoluta",
-    description: "Acertó exactamente un marcador.",
+    description: "Acertaste 3 marcadores exactos consecutivos.",
     category: "hidden",
     status: "active"
   },
@@ -92,7 +95,7 @@ export const funBadges: FunBadge[] = [
     id: "three_exact_streak",
     emoji: "👀",
     title: "Ojo de loca no se equivoca",
-    description: "Acertó 3 marcadores exactos consecutivos.",
+    description: "Acertaste 1 marcador exacto.",
     category: "hidden",
     status: "active"
   },
@@ -100,7 +103,7 @@ export const funBadges: FunBadge[] = [
     id: "cold_streak",
     emoji: "⁉️",
     title: "¿Qué es eso?",
-    description: "No acierta nada después de 5 partidos.",
+    description: "No acertaste ninguna predicción de la jornada.",
     category: "hidden",
     status: "active"
   },
@@ -140,7 +143,7 @@ export const funBadges: FunBadge[] = [
     id: "missed_three_predictions",
     emoji: "🐟",
     title: "Camarón que se duerme se lo lleva la corriente",
-    description: "Olvidaste hacer tres predicciones.",
+    description: "Olvidaste hacer la predicción del último partido.",
     category: "hidden",
     status: "active"
   },
@@ -268,7 +271,7 @@ export const funBadges: FunBadge[] = [
     id: "two_unique_exact_round",
     emoji: "😎",
     title: "¿Viste? Yo te dije",
-    description: "Acertó 2 resultados que nadie tenía en una misma jornada.",
+    description: "Acertaste 2 marcadores exactos consecutivos.",
     category: "hidden",
     status: "active"
   },
@@ -335,12 +338,37 @@ export const funBadges: FunBadge[] = [
     description: "Volver al top 3 después de estar fuera.",
     category: "hidden",
     status: "active"
+  },
+  {
+    id: "goal_difference_only",
+    emoji: "🙏🏽",
+    title: "El poder de la fe",
+    description: "Acertaste solo la diferencia de goles.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "two_goal_difference_hits",
+    emoji: "🧠",
+    title: "Calculadora humana",
+    description: "Acertaste la diferencia de goles en 2 partidos distintos.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "underdog_pick",
+    emoji: "🎲",
+    title: "La corazonada salió buena",
+    description: "Acertaste una predicción que eligió menos del 25% del grupo.",
+    category: "hidden",
+    status: "active"
   }
 ];
 
 export const visibleBadgePreview = funBadges.filter((badge) => badge.category === "visible");
 
 const failedRoundBadgeIds = [
+  "cold_streak",
   "failed_round",
   "failed_round_cry_valley",
   "failed_round_no_hits_today",
@@ -352,6 +380,19 @@ const failedRoundBadgeIds = [
   "failed_round_salado_sirenita",
   "failed_round_cachapa_budare"
 ] satisfies BadgeId[];
+
+export const liveBadgeIds = new Set<BadgeId>([
+  "five_correct_streak",
+  "two_exact_streak",
+  "round_king",
+  "exact_score",
+  "three_exact_streak",
+  "cold_streak",
+  "first_after_two_rounds",
+  "missed_three_predictions",
+  "two_unique_exact_round",
+  ...failedRoundBadgeIds
+]);
 
 const correctRoundBadgeIds = [
   "correct_prediction_in_round",
@@ -397,31 +438,24 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
     add(pickBadgeId(["first_prediction_1", "first_prediction_2", "first_prediction_3"], input.userId));
   }
 
-  const evaluatedPredictions = userPredictions
-    .map((prediction) => {
-      const match = input.matches.find((item) => item.id === prediction.matchId);
-      const result = input.results.find((item) => item.matchId === prediction.matchId);
-      if (!match || !result) return null;
-      return {
-        prediction,
-        match,
-        result,
-        isCorrect: isCorrectMatch(match, result, prediction),
-        isExact: isExactScore(match, result, prediction),
-        isExactDraw: isExactDraw(match, result, prediction)
-      };
-    })
-    .filter((item) => item !== null);
+  const evaluatedPredictions = evaluatedPredictionsForUser(input.userId, input.matches, input.results, input.predictions);
+  const currentEvaluations = currentFinishedEvaluations(input.userId, input.matches, input.results, input.predictions);
+  const currentCorrectStreak = countCurrentStreak(currentEvaluations, (item) => item.isCorrect);
+  const currentExactStreak = countCurrentStreak(currentEvaluations, (item) => item.isExact);
+  const currentSixPointStreak = countCurrentStreak(currentEvaluations, (item) => item.basePoints === 6);
 
   if (evaluatedPredictions.some((item) => item.isExact)) {
     add(pickBadgeId(["first_exact_1", "first_exact_2"], `${input.userId}-exact`));
-    add("exact_score");
   }
   if (evaluatedPredictions.some((item) => item.isExactDraw)) add("exact_draw");
-  if (hasConsecutive(evaluatedPredictions.map((item) => item.isCorrect), 5)) add("five_correct_streak");
-  if (hasConsecutive(evaluatedPredictions.map((item) => item.isExact), 2)) add("two_exact_streak");
-  if (hasConsecutive(evaluatedPredictions.map((item) => item.isExact), 3)) add("three_exact_streak");
-  if (hasConsecutive(evaluatedPredictions.map((item) => !item.isCorrect), 5)) add("cold_streak");
+  if (currentCorrectStreak >= 2) add("five_correct_streak");
+  if (currentSixPointStreak >= 2) add("two_exact_streak");
+  if (currentExactStreak >= 3) add("exact_score");
+  else if (currentExactStreak >= 2) add("two_unique_exact_round");
+  else if (currentExactStreak >= 1) add("three_exact_streak");
+  if (evaluatedPredictions.some((item) => item.isGoalDifferenceOnly)) add("goal_difference_only");
+  if (evaluatedPredictions.filter((item) => item.isGoalDifferenceHit).length >= 2) add("two_goal_difference_hits");
+  if (hasUnderdogPick(input.userId, input.matches, input.results, input.predictions)) add("underdog_pick");
 
   const bestGroupScore = Math.max(0, ...input.predictions.map((prediction) => prediction.pointsAwarded));
   if (bestGroupScore > 0 && userPredictions.some((prediction) => prediction.pointsAwarded === bestGroupScore)) {
@@ -429,7 +463,6 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   }
 
   if (hasUniqueExact(input.userId, input.matches, input.results, input.predictions)) add("unique_exact");
-  if (hasTwoUniqueExactInRound(input.userId, input.matches, input.results, input.predictions)) add("two_unique_exact_round");
   if (hasPerfectRound(input.userId, input.matches, input.results, input.predictions)) add("perfect_round");
   const correctRoundKey = correctRoundForUser(input.userId, input.matches, input.results, input.predictions);
   if (correctRoundKey) add(pickBadgeId(correctRoundBadgeIds, `${input.userId}-${correctRoundKey}-correct-round`));
@@ -441,11 +474,9 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
     add("all_group_stage_predictions_saved");
   }
 
-  const finishedMatchIds = input.results.map((result) => result.matchId);
-  const missedPredictions = finishedMatchIds.filter(
-    (matchId) => !userPredictions.some((prediction) => prediction.matchId === matchId)
-  );
-  if (missedPredictions.length >= 3) add("missed_three_predictions");
+  if (missedLatestFinishedMatch(input.userId, input.matches, input.results, input.predictions)) {
+    add("missed_three_predictions");
+  }
 
   if (userRanking?.rank === 1 && userRanking.points > 0) add("round_king");
   if (heldFirstAcrossRecentSnapshots(input.userId, input.rankingSnapshots) || (userRanking?.rank === 1 && userRanking.points > 0 && roundKeys(input.matches, input.results).length >= 2)) {
@@ -537,29 +568,10 @@ function isExactDraw(match: Match, result: MatchResult, prediction: Prediction) 
   );
 }
 
-function hasConsecutive(values: boolean[], target: number) {
-  let streak = 0;
-  for (const value of values) {
-    streak = value ? streak + 1 : 0;
-    if (streak >= target) return true;
-  }
-  return false;
-}
-
 function hasUniqueExact(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
   return exactPredictionsForUser(userId, matches, results, predictions).some((prediction) =>
     isUniqueScorePrediction(prediction, predictions)
   );
-}
-
-function hasTwoUniqueExactInRound(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
-  const byRound = new Map<string, number>();
-  for (const prediction of exactPredictionsForUser(userId, matches, results, predictions)) {
-    if (!isUniqueScorePrediction(prediction, predictions)) continue;
-    const key = roundKey(matches.find((match) => match.id === prediction.matchId));
-    byRound.set(key, (byRound.get(key) ?? 0) + 1);
-  }
-  return [...byRound.values()].some((count) => count >= 2);
 }
 
 function exactPredictionsForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
@@ -567,7 +579,7 @@ function exactPredictionsForUser(userId: string, matches: Match[], results: Matc
     if (prediction.userId !== userId) return false;
     const match = matches.find((item) => item.id === prediction.matchId);
     const result = results.find((item) => item.matchId === prediction.matchId);
-    return Boolean(match && result && isExactScore(match, result, prediction));
+    return Boolean(match && result && hasCompletedResult(result) && isExactScore(match, result, prediction));
   });
 }
 
@@ -586,7 +598,7 @@ function isUniqueScorePrediction(prediction: Prediction, predictions: Prediction
 
 function hasPerfectRound(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
   return roundKeys(matches, results).some((key) => {
-    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id));
+    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id && hasCompletedResult(result)));
     if (roundMatches.length === 0) return false;
     const userRoundPredictions = predictions.filter(
       (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
@@ -596,7 +608,7 @@ function hasPerfectRound(userId: string, matches: Match[], results: MatchResult[
       userRoundPredictions.every((prediction) => {
         const match = matches.find((item) => item.id === prediction.matchId);
         const result = results.find((item) => item.matchId === prediction.matchId);
-        return Boolean(match && result && isCorrectMatch(match, result, prediction));
+        return Boolean(match && result && hasCompletedResult(result) && isCorrectMatch(match, result, prediction));
       })
     );
   });
@@ -604,26 +616,30 @@ function hasPerfectRound(userId: string, matches: Match[], results: MatchResult[
 
 function correctRoundForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
   return roundKeys(matches, results).find((key) => {
-    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id));
+    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id && hasCompletedResult(result)));
     const userRoundPredictions = predictions.filter(
       (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
     );
     return userRoundPredictions.some((prediction) => {
       const match = matches.find((item) => item.id === prediction.matchId);
       const result = results.find((item) => item.matchId === prediction.matchId);
-      return Boolean(match && result && isCorrectMatch(match, result, prediction));
+      return Boolean(match && result && hasCompletedResult(result) && isCorrectMatch(match, result, prediction));
     });
   });
 }
 
 function failedRoundForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
-  return roundKeys(matches, results).find((key) => {
-    const roundMatches = matches.filter((match) => roundKey(match) === key && results.some((result) => result.matchId === match.id));
-    const userRoundPredictions = predictions.filter(
-      (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
-    );
-    return userRoundPredictions.length > 0 && userRoundPredictions.every((prediction) => prediction.pointsAwarded === 0);
-  });
+  const latestRoundKey = roundKeys(matches, results).at(-1);
+  if (!latestRoundKey) return undefined;
+
+  const roundMatches = matches.filter((match) => roundKey(match) === latestRoundKey && results.some((result) => result.matchId === match.id && hasCompletedResult(result)));
+  const userRoundPredictions = predictions.filter(
+    (prediction) => prediction.userId === userId && roundMatches.some((match) => match.id === prediction.matchId)
+  );
+
+  return userRoundPredictions.length > 0 && userRoundPredictions.every((prediction) => prediction.pointsAwarded === 0)
+    ? latestRoundKey
+    : undefined;
 }
 
 function hasAllGroupStagePredictions(userId: string, matches: Match[], predictions: Prediction[]) {
@@ -636,7 +652,7 @@ function hasAllGroupStagePredictions(userId: string, matches: Match[], predictio
 }
 
 function roundKeys(matches: Match[], results: MatchResult[]) {
-  return [...new Set(matches.filter((match) => results.some((result) => result.matchId === match.id)).map(roundKey))];
+  return [...new Set(matches.filter((match) => results.some((result) => result.matchId === match.id && hasCompletedResult(result))).map(roundKey))];
 }
 
 function roundKey(match?: Match) {
@@ -647,6 +663,137 @@ function roundKey(match?: Match) {
     month: "2-digit",
     day: "2-digit"
   }).format(new Date(match.kickoffAt));
+}
+
+function evaluatedPredictionsForUser(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  return predictions
+    .filter((prediction) => prediction.userId === userId)
+    .map((prediction) => {
+      const match = matches.find((item) => item.id === prediction.matchId);
+      const result = results.find((item) => item.matchId === prediction.matchId);
+      if (!match || !result || !hasCompletedResult(result)) return null;
+      const isCorrect = isCorrectMatch(match, result, prediction);
+      const isExact = isExactScore(match, result, prediction);
+      const isGoalDifferenceHit = hasGoalDifferenceHit(match, result, prediction);
+
+      return {
+        prediction,
+        match,
+        result,
+        isCorrect,
+        isExact,
+        isExactDraw: isExactDraw(match, result, prediction),
+        isGoalDifferenceHit,
+        isGoalDifferenceOnly: isGoalDifferenceHit && !isCorrect && !isExact,
+        basePoints: baseMatchPoints(match, result, prediction)
+      };
+    })
+    .filter((item) => item !== null)
+    .sort((a, b) => matchTime(matches, a.match.id) - matchTime(matches, b.match.id));
+}
+
+function currentFinishedEvaluations(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  return matches
+    .filter((match) => results.some((result) => result.matchId === match.id && hasCompletedResult(result)))
+    .sort((a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime())
+    .map((match) => {
+      const result = results.find((item) => item.matchId === match.id && hasCompletedResult(item))!;
+      const prediction = predictions.find((item) => item.userId === userId && item.matchId === match.id);
+      if (!prediction) {
+        return {
+          match,
+          result,
+          prediction: null,
+          isCorrect: false,
+          isExact: false,
+          basePoints: 0
+        };
+      }
+
+      return {
+        match,
+        result,
+        prediction,
+        isCorrect: isCorrectMatch(match, result, prediction),
+        isExact: isExactScore(match, result, prediction),
+        basePoints: baseMatchPoints(match, result, prediction)
+      };
+    });
+}
+
+function countCurrentStreak<T>(items: T[], predicate: (item: T) => boolean) {
+  let count = 0;
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    if (!predicate(items[index])) break;
+    count += 1;
+  }
+  return count;
+}
+
+function missedLatestFinishedMatch(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  const latestMatch = matches
+    .filter((match) => results.some((result) => result.matchId === match.id && hasCompletedResult(result)))
+    .sort((a, b) => new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime())[0];
+
+  return Boolean(latestMatch && !predictions.some((prediction) => prediction.userId === userId && prediction.matchId === latestMatch.id));
+}
+
+function baseMatchPoints(match: Match, result: MatchResult, prediction: Prediction) {
+  let points = 0;
+  if (isCorrectMatch(match, result, prediction)) points += 3;
+  if (isExactScore(match, result, prediction)) points += 2;
+  if (hasGoalDifferenceHit(match, result, prediction)) points += 1;
+  return points;
+}
+
+function hasGoalDifferenceHit(match: Match, result: MatchResult, prediction: Prediction) {
+  if (match.phase !== "group_stage" && match.phase !== "final") return false;
+  if (
+    prediction.predictedHomeScore === null ||
+    prediction.predictedAwayScore === null ||
+    result.homeScore90 === null ||
+    result.awayScore90 === null
+  ) {
+    return false;
+  }
+
+  if (result.homeScore90 === result.awayScore90) return false;
+
+  const predictedDiff = Math.abs(prediction.predictedHomeScore - prediction.predictedAwayScore);
+  const actualDiff = Math.abs(result.homeScore90 - result.awayScore90);
+  return predictedDiff === actualDiff;
+}
+
+function hasUnderdogPick(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {
+  return predictions.some((prediction) => {
+    if (prediction.userId !== userId) return false;
+    const match = matches.find((item) => item.id === prediction.matchId);
+    const result = results.find((item) => item.matchId === prediction.matchId);
+    if (!match || !result || !hasCompletedResult(result) || !isCorrectMatch(match, result, prediction)) return false;
+
+    const matchPredictions = predictions.filter((item) => item.matchId === prediction.matchId);
+    if (matchPredictions.length === 0) return false;
+
+    const selectedSameResult = matchPredictions.filter((item) => samePredictedResult(match, prediction, item)).length;
+    return selectedSameResult / matchPredictions.length < 0.25;
+  });
+}
+
+function samePredictedResult(match: Match, prediction: Prediction, other: Prediction) {
+  if (match.phase === "group_stage") {
+    return prediction.predictedOutcome === other.predictedOutcome;
+  }
+
+  return Boolean(prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === other.predictedWinnerTeamId);
+}
+
+function hasCompletedResult(result: MatchResult) {
+  return (
+    (result.homeScore90 !== null && result.awayScore90 !== null) ||
+    result.winnerTeamId !== null ||
+    result.homeScoreFinal !== null ||
+    result.awayScoreFinal !== null
+  );
 }
 
 function getActualOutcome(homeScore: number | null, awayScore: number | null) {

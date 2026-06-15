@@ -1,4 +1,4 @@
-import { evaluateBadgesForUser, type BadgeId } from "@/lib/badges";
+import { evaluateBadgesForUser, liveBadgeIds, type BadgeId } from "@/lib/badges";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ChampionPrediction, Match, MatchResult, Prediction, Profile, RankingSnapshot } from "@/lib/types";
 
@@ -162,7 +162,7 @@ export async function recordBadgeEventsForMatch(admin: AdminClient, matchId: str
     });
 
     for (const badge of afterBadges) {
-      if (beforeBadges.has(badge.id)) continue;
+      if (!liveBadgeIds.has(badge.id) && beforeBadges.has(badge.id)) continue;
       rows.push({
         group_id: profile.groupId,
         user_id: profile.id,
