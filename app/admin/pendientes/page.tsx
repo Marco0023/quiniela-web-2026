@@ -1,12 +1,14 @@
 import Image from "next/image";
 import { CalendarClock, ClipboardList, Trophy } from "lucide-react";
 import { AdminClassificationMissingForm } from "@/components/admin-classification-missing-form";
+import { AdminMatchMissingForm } from "@/components/admin-match-missing-form";
 import { AppShell } from "@/components/app-shell";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { resolveClassificationGroups } from "@/lib/classification/groups";
 import { PHASE_LABELS } from "@/lib/constants";
 import { statusLabel } from "@/lib/format";
 import { getAdminPendingPredictionsData } from "@/lib/repository";
+import { isPredictionLocked } from "@/lib/scoring";
 import type { Group, Match, Prediction, Profile, Team } from "@/lib/types";
 
 export default async function AdminPendingPage({
@@ -21,6 +23,15 @@ export default async function AdminPendingPage({
     users: data.users.filter((user) => user.groupId === group.id)
   }));
   const classificationGroups = resolveClassificationGroups(data.teams);
+  const eligibleLatePredictionMatches = data.todayMatches.filter(
+    (match) => isPredictionLocked(match.kickoffAt) && !data.results.some((result) => result.matchId === match.id)
+  );
+  const savedMessage =
+    status.saved === "partido"
+      ? "Predicción faltante guardada."
+      : status.saved === "clasificacion"
+        ? "Clasificación faltante guardada."
+        : null;
 
   return (
     <AppShell showAdmin>
@@ -28,11 +39,7 @@ export default async function AdminPendingPage({
       {status.error ? (
         <p className="mb-4 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{status.error}</p>
       ) : null}
-      {status.saved ? (
-        <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">
-          Clasificación faltante guardada.
-        </p>
-      ) : null}
+      {savedMessage ? <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">{savedMessage}</p> : null}
 
       <div className="grid gap-5">
         <Card>
@@ -61,6 +68,37 @@ export default async function AdminPendingPage({
               No hay partidos programados para hoy en tu horario.
             </p>
           )}
+
+          <div className="mt-5 border-t border-white/10 pt-4">
+            <div className="mb-4 flex items-center gap-3">
+              <ClipboardList className="size-6 text-gold" />
+              <div>
+                <h2 className="text-xl font-black text-ink">Cargar predicción faltante</h2>
+                <p className="text-sm text-white/55">
+                  Solo partidos de hoy que ya cerraron y todavía no tienen resultado guardado.
+                </p>
+              </div>
+            </div>
+            <AdminMatchMissingForm
+              existingPredictions={data.predictions.map((prediction) => ({
+                matchId: prediction.matchId,
+                userId: prediction.userId
+              }))}
+              groups={privateGroups.map((group) => ({
+                id: group.id,
+                name: group.name,
+                users: group.users.map((user) => ({
+                  id: user.id,
+                  alias: user.alias,
+                  firstName: user.firstName,
+                  lastName: user.lastName
+                }))
+              }))}
+              matches={eligibleLatePredictionMatches}
+              teams={data.teams}
+              timezone={data.profile.timezone}
+            />
+          </div>
         </Card>
 
         <Card>

@@ -446,14 +446,23 @@ export async function getAdminPendingPredictionsData() {
   if (profile.role !== "admin") redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [groupsResponse, profilesResponse, teamsResponse, matchesResponse, predictionsResponse, classificationPredictionsResponse] =
+  const [
+    groupsResponse,
+    profilesResponse,
+    teamsResponse,
+    matchesResponse,
+    predictionsResponse,
+    classificationPredictionsResponse,
+    resultsResponse
+  ] =
     await Promise.all([
       admin.from("groups").select("id,name,invite_code").order("name"),
       admin.from("profiles").select("*").eq("role", "participant").order("alias"),
       admin.from("teams").select("id,name,short_name,flag_url").order("name"),
       admin.from("matches").select("*").order("kickoff_at"),
       admin.from("match_predictions").select("*"),
-      admin.from("group_classification_predictions").select("*")
+      admin.from("group_classification_predictions").select("*"),
+      admin.from("match_results").select("*")
     ]);
 
   const groups = groupsResponse.data ? (groupsResponse.data as GroupRow[]).map(mapGroup) : [];
@@ -468,6 +477,7 @@ export async function getAdminPendingPredictionsData() {
   const classificationPredictions = classificationPredictionsResponse.data
     ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
+  const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
   const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
 
@@ -479,6 +489,7 @@ export async function getAdminPendingPredictionsData() {
     matches,
     todayMatches,
     predictions,
+    results,
     classificationPredictions
   };
 }
