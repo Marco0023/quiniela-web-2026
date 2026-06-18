@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, CircleCheck, DatabaseZap, ListChecks, UsersRound } from "lucide-react";
+import { Activity, CircleCheck, ClipboardList, DatabaseZap, ListChecks, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Card, SectionHeader } from "@/components/ui";
 import { getAdminOverviewData } from "@/lib/repository";
@@ -9,6 +9,7 @@ export default async function AdminPage() {
   const modules = [
     { href: "/admin/usuarios", label: "Usuarios", icon: UsersRound, value: data.stats.users },
     { href: "/admin/predicciones", label: "Predicciones", icon: ListChecks, value: data.stats.predictions },
+    { href: "/admin/pendientes", label: "Pendientes", icon: ClipboardList, value: "Ver" },
     { href: "/admin/resultados", label: "Partidos", icon: DatabaseZap, value: data.stats.matches },
     { href: "/admin/logs", label: "Logs", icon: Activity, value: data.stats.logs }
   ];
@@ -16,7 +17,7 @@ export default async function AdminPage() {
   return (
     <AppShell showAdmin>
       <SectionHeader eyebrow="Panel" title="Administrador" />
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
         {modules.map((item) => {
           const Icon = item.icon;
           return (

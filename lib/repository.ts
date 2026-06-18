@@ -441,6 +441,57 @@ export async function getAdminPredictionsData() {
   };
 }
 
+export async function getAdminPendingPredictionsData() {
+  const profile = await getCurrentProfile();
+  if (profile.role !== "admin") redirect("/dashboard");
+
+  const admin = createAdminClient();
+  const [groupsResponse, profilesResponse, teamsResponse, matchesResponse, predictionsResponse, classificationPredictionsResponse] =
+    await Promise.all([
+      admin.from("groups").select("id,name,invite_code").order("name"),
+      admin.from("profiles").select("*").eq("role", "participant").order("alias"),
+      admin.from("teams").select("id,name,short_name,flag_url").order("name"),
+      admin.from("matches").select("*").order("kickoff_at"),
+      admin.from("match_predictions").select("*"),
+      admin.from("group_classification_predictions").select("*")
+    ]);
+
+  const groups = groupsResponse.data ? (groupsResponse.data as GroupRow[]).map(mapGroup) : [];
+  const users = profilesResponse.data ? (profilesResponse.data as ProfileRow[]).map(mapProfile) : [];
+  const teams =
+    teamsResponse.data && teamsResponse.data.length > 0
+      ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
+      : sortTeamsBySpanishName(mockTeams);
+  const matches =
+    matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
+  const predictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
+  const classificationPredictions = classificationPredictionsResponse.data
+    ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
+    : [];
+  const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
+  const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
+
+  return {
+    profile,
+    groups,
+    users,
+    teams,
+    matches,
+    todayMatches,
+    predictions,
+    classificationPredictions
+  };
+}
+
+function dateKeyInTimezone(date: Date, timezone: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+}
+
 export async function getVisibleMatchPredictions(matchId: string) {
   const profile = await getCurrentProfile();
   const admin = createAdminClient();

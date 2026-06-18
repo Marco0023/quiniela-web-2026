@@ -2,9 +2,8 @@ import { AppShell } from "@/components/app-shell";
 import { MatchesTabs } from "@/components/matches-tabs";
 import type { MatchesTab } from "@/components/matches-tabs";
 import { SectionHeader } from "@/components/ui";
+import { resolveClassificationGroups } from "@/lib/classification/groups";
 import { getDashboardData } from "@/lib/repository";
-import { namesForTeamLookup, normalizeLookupName, WORLD_CUP_GROUPS } from "@/lib/world-cup-groups";
-import type { Team } from "@/lib/types";
 
 export default async function MatchesPage({
   searchParams
@@ -42,23 +41,4 @@ export default async function MatchesPage({
 
 function parseTab(tab?: string): MatchesTab {
   return tab === "classification" || tab === "knockout" || tab === "finals" ? tab : "matches";
-}
-
-function resolveClassificationGroups(teams: Team[]) {
-  const teamMap = new Map(teams.flatMap((team) => [[normalizeLookupName(team.name), team], [normalizeLookupName(team.shortName), team]]));
-
-  return WORLD_CUP_GROUPS.map((group) => ({
-    ...group,
-    teams: group.teams.map((name) => {
-      const team = namesForTeamLookup(name)
-        .map((candidate) => teamMap.get(normalizeLookupName(candidate)))
-        .find(Boolean);
-
-      return {
-        id: team?.id ?? null,
-        name,
-        flagUrl: team?.flagUrl ?? ""
-      };
-    })
-  }));
 }
