@@ -84,5 +84,6 @@ export async function saveGroupClassificationPrediction(formData: FormData) {
   revalidatePath("/partidos");
   revalidatePath("/dashboard");
   revalidatePath("/ranking");
+  revalidatePath("/inicio-admin");
   redirect(`/partidos?tab=classification&saved=clasificacion&group=${encodeURIComponent(tournamentGroup)}`);
 }

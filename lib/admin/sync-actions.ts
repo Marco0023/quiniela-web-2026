@@ -36,6 +36,7 @@ export async function syncFootballData() {
     revalidatePath("/partidos");
     revalidatePath("/ranking");
     revalidatePath("/historial");
+    revalidatePath("/inicio-admin");
   } catch (error) {
     await admin.from("sync_logs").insert({
       provider: provider.name,

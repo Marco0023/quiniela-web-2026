@@ -22,10 +22,18 @@ export async function login(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     redirectWithError("/login", "Correo o contraseña incorrectos.");
+  }
+
+  if (data.user) {
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from("profiles").select("role").eq("id", data.user.id).maybeSingle<{ role: string }>();
+    if (profile?.role === "admin") {
+      redirect("/inicio-admin");
+    }
   }
 
   redirect("/dashboard");

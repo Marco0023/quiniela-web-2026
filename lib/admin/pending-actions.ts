@@ -158,6 +158,7 @@ export async function saveAdminMatchPrediction(formData: FormData) {
   revalidatePath("/partidos");
   revalidatePath("/historial");
   revalidatePath("/ranking");
+  revalidatePath("/inicio-admin");
   redirect("/admin/pendientes?saved=partido");
 }
 
@@ -250,5 +251,6 @@ export async function saveAdminClassificationPrediction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/ranking");
   revalidatePath("/partidos");
+  revalidatePath("/inicio-admin");
   redirect("/admin/pendientes?saved=clasificacion");
 }

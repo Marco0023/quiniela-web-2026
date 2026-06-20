@@ -2,6 +2,9 @@ import type { ChampionPrediction, Match, MatchResult, Prediction, RankingSnapsho
 
 export type BadgeId =
   | "five_correct_streak"
+  | "hot_machine"
+  | "future_alien"
+  | "rank_jump_two"
   | "world_champion"
   | "two_exact_streak"
   | "round_king"
@@ -56,6 +59,30 @@ export const funBadges: FunBadge[] = [
     emoji: "🔥",
     title: "Soy muy buenoo!!",
     description: "Acertaste 2 partidos consecutivos.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "hot_machine",
+    emoji: "🔥",
+    title: "La máquina está prendía",
+    description: "Acertaste 2 partidos consecutivos.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "future_alien",
+    emoji: "👽",
+    title: "Vengo del futuro",
+    description: "Acertaste 4 partidos consecutivos.",
+    category: "hidden",
+    status: "active"
+  },
+  {
+    id: "rank_jump_two",
+    emoji: "📈",
+    title: "Subiendo como espuma",
+    description: "Subiste al menos 2 posiciones en el ranking.",
     category: "hidden",
     status: "active"
   },
@@ -383,6 +410,8 @@ const failedRoundBadgeIds = [
 
 export const liveBadgeIds = new Set<BadgeId>([
   "five_correct_streak",
+  "hot_machine",
+  "future_alien",
   "two_exact_streak",
   "round_king",
   "exact_score",
@@ -448,7 +477,8 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
     add(pickBadgeId(["first_exact_1", "first_exact_2"], `${input.userId}-exact`));
   }
   if (evaluatedPredictions.some((item) => item.isExactDraw)) add("exact_draw");
-  if (currentCorrectStreak >= 2) add("five_correct_streak");
+  if (currentCorrectStreak >= 2) add(pickBadgeId(["five_correct_streak", "hot_machine"], `${input.userId}-correct-streak`));
+  if (currentCorrectStreak >= 4) add("future_alien");
   if (currentSixPointStreak >= 2) add("two_exact_streak");
   if (currentExactStreak >= 3) add("exact_score");
   else if (currentExactStreak >= 2) add("two_unique_exact_round");
@@ -484,6 +514,7 @@ export function evaluateBadgesForUser(input: BadgeEvaluationInput) {
   }
   if (escapedLastPlace(input.userId, userRanking?.rank, input.rankingSnapshots)) add("survivor");
   if (returnedToTopThree(input.userId, userRanking?.rank, input.rankingSnapshots)) add("back_to_top_three");
+  if (jumpedAtLeastTwoRanks(input.userId, input.rankingSnapshots)) add("rank_jump_two");
 
   const champion = input.championPredictions.find((prediction) => prediction.userId === input.userId);
   if (champion?.teamId && input.worldChampionTeamId && champion.teamId === input.worldChampionTeamId) {
@@ -515,6 +546,17 @@ function escapedLastPlace(userId: string, currentRank = 0, snapshots: RankingSna
 function returnedToTopThree(userId: string, currentRank = 0, snapshots: RankingSnapshot[] = []) {
   if (!currentRank || currentRank > 3) return false;
   return snapshots.some((snapshot) => snapshot.userId === userId && snapshot.rank > 3);
+}
+
+function jumpedAtLeastTwoRanks(userId: string, snapshots: RankingSnapshot[] = []) {
+  const userSnapshots = snapshots
+    .filter((snapshot) => snapshot.userId === userId)
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  if (userSnapshots.length < 2) return false;
+
+  const previous = userSnapshots[userSnapshots.length - 2];
+  const latest = userSnapshots[userSnapshots.length - 1];
+  return previous.rank - latest.rank >= 2;
 }
 
 export function badgesForRankingRow(rank: number, points: number): FunBadge[] {

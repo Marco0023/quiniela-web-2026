@@ -378,6 +378,97 @@ export async function getAdminOverviewData() {
   };
 }
 
+export async function getAdminHomeData() {
+  const profile = await getCurrentProfile();
+  if (profile.role !== "admin") redirect("/dashboard");
+
+  const admin = createAdminClient();
+  const [
+    groupsResponse,
+    profilesResponse,
+    teamsResponse,
+    matchesResponse,
+    predictionsResponse,
+    resultsResponse,
+    classificationPredictionsResponse
+  ] = await Promise.all([
+    admin.from("groups").select("id,name,invite_code").order("name"),
+    admin.from("profiles").select("*").eq("role", "participant").order("alias"),
+    admin.from("teams").select("id,name,short_name,flag_url").order("name"),
+    admin.from("matches").select("*").order("kickoff_at"),
+    admin.from("match_predictions").select("*"),
+    admin.from("match_results").select("*"),
+    admin.from("group_classification_predictions").select("*")
+  ]);
+
+  const groups = groupsResponse.data ? (groupsResponse.data as GroupRow[]).map(mapGroup) : [];
+  const users = profilesResponse.data ? (profilesResponse.data as ProfileRow[]).map(mapProfile) : [];
+  const teams =
+    teamsResponse.data && teamsResponse.data.length > 0
+      ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
+      : sortTeamsBySpanishName(mockTeams);
+  const matches =
+    matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
+  const predictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
+  const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
+  const classificationPredictions = classificationPredictionsResponse.data
+    ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
+    : [];
+  const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
+  const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
+  const closedWithoutResults = matches
+    .filter((match) => new Date(match.kickoffAt).getTime() <= Date.now() && !results.some((result) => result.matchId === match.id))
+    .sort((a, b) => Math.abs(new Date(a.kickoffAt).getTime() - Date.now()) - Math.abs(new Date(b.kickoffAt).getTime() - Date.now()));
+  const pendingPredictionCount = todayMatches.reduce((total, match) => {
+    const missing = users.filter(
+      (user) => user.groupId && !predictions.some((prediction) => prediction.matchId === match.id && prediction.userId === user.id)
+    ).length;
+    return total + missing;
+  }, 0);
+
+  const rankingsByGroup = groups.map((group) => {
+    const groupUsers = users.filter((user) => user.groupId === group.id);
+    const rows = groupUsers
+      .map((user) => ({
+        user,
+        points:
+          predictions
+            .filter((prediction) => prediction.userId === user.id)
+            .reduce((total, prediction) => total + prediction.pointsAwarded, 0) +
+          classificationPredictions
+            .filter((prediction) => prediction.userId === user.id)
+            .reduce((total, prediction) => total + prediction.pointsAwarded, 0)
+      }))
+      .sort((a, b) => b.points - a.points);
+
+    const ranking: { user: Profile; points: number; rank: number }[] = [];
+    rows.forEach((row, index) => {
+      const previous = ranking[index - 1];
+      const rank = previous && previous.points === row.points ? previous.rank : index + 1;
+      ranking.push({ ...row, rank });
+    });
+
+    return {
+      group,
+      ranking
+    };
+  });
+
+  return {
+    profile,
+    groups,
+    users,
+    teams,
+    matches,
+    todayMatches,
+    predictions,
+    results,
+    rankingsByGroup,
+    closedWithoutResults,
+    pendingPredictionCount
+  };
+}
+
 export async function getAdminLogsData() {
   const profile = await getCurrentProfile();
   if (profile.role !== "admin") redirect("/dashboard");

@@ -203,6 +203,7 @@ export async function saveMatchResult(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/ranking");
   revalidatePath("/historial");
+  revalidatePath("/inicio-admin");
   redirect("/admin/resultados?saved=1");
 }
 

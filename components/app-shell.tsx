@@ -13,7 +13,7 @@ const navItems: MobileNavItem[] = [
 ];
 
 const adminNavItems: MobileNavItem[] = [
-  { href: "/admin", label: "Admin", icon: "admin" }
+  { href: "/inicio-admin", label: "Admin", icon: "admin" }
 ];
 
 const desktopIcons = {
