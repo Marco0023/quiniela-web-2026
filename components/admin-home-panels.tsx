@@ -3,8 +3,10 @@
 import Image from "next/image";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { BadgeChip } from "@/components/badge-chip";
 import { Badge, Card } from "@/components/ui";
 import { formatKickoff } from "@/lib/format";
+import { getBadgeById, type BadgeId } from "@/lib/badges";
 import type { Group, Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
 type RankingGroup = {
@@ -13,6 +15,7 @@ type RankingGroup = {
     user: Profile;
     points: number;
     rank: number;
+    badgeIds: string[];
   }[];
 };
 
@@ -31,18 +34,32 @@ export function AdminRankingCarousel({ groups }: { groups: RankingGroup[] }) {
         onPrevious={() => setSelectedIndex((selectedIndex - 1 + groups.length) % groups.length)}
       />
       <div className="divide-y divide-white/10">
-        {selected?.ranking.map((row) => (
-          <div key={row.user.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
-            <span className="text-lg font-black text-gold">#{row.rank}</span>
-            <div className="min-w-0">
-              <p className="truncate font-black text-white">{row.user.alias}</p>
-              <p className="truncate text-xs text-white/45">
-                {row.user.firstName} {row.user.lastName}
-              </p>
+        {selected?.ranking.map((row) => {
+          const badges = row.badgeIds
+            .map((badgeId) => getBadgeById(badgeId as BadgeId))
+            .filter((badge) => Boolean(badge))
+            .slice(0, 2);
+
+          return (
+            <div key={row.user.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-3 px-4 py-3">
+              <span className="text-lg font-black text-gold">#{row.rank}</span>
+              <div className="min-w-0">
+                <p className="truncate font-black text-white">{row.user.alias}</p>
+                <p className="truncate text-xs text-white/45">
+                  {row.user.firstName} {row.user.lastName}
+                </p>
+                {badges.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {badges.map((badge) => (
+                      <BadgeChip key={badge!.title} badge={badge!} />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <span className="rounded bg-white/10 px-3 py-1 text-sm font-black text-ink">{row.points} pts</span>
             </div>
-            <span className="rounded bg-white/10 px-3 py-1 text-sm font-black text-ink">{row.points} pts</span>
-          </div>
-        ))}
+          );
+        })}
         {selected && selected.ranking.length === 0 ? (
           <p className="px-4 py-5 text-sm text-white/55">Todavía no hay participantes en este grupo.</p>
         ) : null}

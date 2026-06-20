@@ -390,7 +390,8 @@ export async function getAdminHomeData() {
     matchesResponse,
     predictionsResponse,
     resultsResponse,
-    classificationPredictionsResponse
+    classificationPredictionsResponse,
+    badgeEventsResponse
   ] = await Promise.all([
     admin.from("groups").select("id,name,invite_code").order("name"),
     admin.from("profiles").select("*").eq("role", "participant").order("alias"),
@@ -398,7 +399,8 @@ export async function getAdminHomeData() {
     admin.from("matches").select("*").order("kickoff_at"),
     admin.from("match_predictions").select("*"),
     admin.from("match_results").select("*"),
-    admin.from("group_classification_predictions").select("*")
+    admin.from("group_classification_predictions").select("*"),
+    admin.from("badge_events").select("*").order("created_at", { ascending: false })
   ]);
 
   const groups = groupsResponse.data ? (groupsResponse.data as GroupRow[]).map(mapGroup) : [];
@@ -414,6 +416,7 @@ export async function getAdminHomeData() {
   const classificationPredictions = classificationPredictionsResponse.data
     ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
+  const badgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
   const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
   const closedWithoutResults = matches
@@ -428,6 +431,13 @@ export async function getAdminHomeData() {
 
   const rankingsByGroup = groups.map((group) => {
     const groupUsers = users.filter((user) => user.groupId === group.id);
+    const latestGroupResult = [...results]
+      .filter((result) => result.updatedAt)
+      .filter((result) => badgeEvents.some((event) => event.groupId === group.id && event.matchId === result.matchId))
+      .sort((a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime())[0];
+    const activeBadgeEvents = latestGroupResult
+      ? badgeEvents.filter((event) => event.groupId === group.id && event.matchId === latestGroupResult.matchId)
+      : [];
     const rows = groupUsers
       .map((user) => ({
         user,
@@ -437,11 +447,12 @@ export async function getAdminHomeData() {
             .reduce((total, prediction) => total + prediction.pointsAwarded, 0) +
           classificationPredictions
             .filter((prediction) => prediction.userId === user.id)
-            .reduce((total, prediction) => total + prediction.pointsAwarded, 0)
+            .reduce((total, prediction) => total + prediction.pointsAwarded, 0),
+        badgeIds: activeBadgeEvents.filter((event) => event.userId === user.id).map((event) => event.badgeId)
       }))
       .sort((a, b) => b.points - a.points);
 
-    const ranking: { user: Profile; points: number; rank: number }[] = [];
+    const ranking: { user: Profile; points: number; rank: number; badgeIds: string[] }[] = [];
     rows.forEach((row, index) => {
       const previous = ranking[index - 1];
       const rank = previous && previous.points === row.points ? previous.rank : index + 1;
