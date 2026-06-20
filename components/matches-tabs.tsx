@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowDown, ArrowUp, GripVertical, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MatchCard } from "@/components/match-card";
+import { QuickPredictionWizard } from "@/components/quick-prediction-wizard";
 import { Card } from "@/components/ui";
 import { saveGroupClassificationPrediction } from "@/lib/classification/actions";
 import { classificationCloseAt, isClassificationLocked } from "@/lib/classification/rules";
@@ -116,10 +117,15 @@ function MatchesPanel({
 
   return (
     <section>
-      <h2 className="text-2xl font-black text-gold md:text-3xl">{PHASE_LABELS.group_stage}</h2>
-      <p className="mb-4 mt-1 text-sm text-white/60">
-        Predice el ganador o empate. El marcador es opcional, pero te puede dar puntos adicionales.
-      </p>
+      <div className="mb-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <h2 className="text-2xl font-black text-gold md:text-3xl">{PHASE_LABELS.group_stage}</h2>
+          <p className="mt-1 text-sm text-white/60">
+            Predice el ganador o empate. El marcador es opcional, pero te puede dar puntos adicionales.
+          </p>
+        </div>
+        <QuickPredictionWizard matches={openMatches} predictions={predictions} teams={teams} />
+      </div>
       <MatchGrid matches={openMatches} predictions={predictions} results={results} teams={teams} timezone={timezone} />
       {finishedMatches.length > 0 ? (
         <div className="mt-8">

@@ -12,6 +12,11 @@ export type SavePredictionState = {
   redirectTo: string;
 } | null;
 
+export type QuickPredictionResult = {
+  ok: boolean;
+  error?: string;
+};
+
 function value(formData: FormData, key: string) {
   const raw = formData.get(key);
   return String(raw ?? "").trim();
@@ -26,6 +31,13 @@ function optionalNumber(formData: FormData, key: string) {
 
 function fail(matchId: string, message: string): never {
   redirect(`/partidos/${matchId}?error=${encodeURIComponent(message)}`);
+}
+
+function quickFail(message: string): QuickPredictionResult {
+  return {
+    ok: false,
+    error: message
+  };
 }
 
 export async function savePrediction(_state: SavePredictionState, formData: FormData): Promise<SavePredictionState> {
@@ -136,4 +148,73 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
   }
 
   redirect(`/partidos/${matchId}?saved=1`);
+}
+
+export async function saveQuickGroupPrediction(formData: FormData): Promise<QuickPredictionResult> {
+  const matchId = value(formData, "matchId");
+  if (!matchId) return quickFail("Partido no encontrado.");
+
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return quickFail("Tu sesión expiró. Inicia sesión otra vez.");
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id,group_id,role")
+    .eq("id", authData.user.id)
+    .single();
+
+  if (!profile?.group_id) return quickFail("Tu usuario no tiene grupo asignado.");
+
+  const { data: match } = await admin.from("matches").select("*").eq("id", matchId).single<{
+    id: string;
+    phase: Match["phase"];
+    kickoff_at: string;
+    home_team_id: string | null;
+    away_team_id: string | null;
+  }>();
+
+  if (!match || match.phase !== "group_stage") return quickFail("Este flujo solo funciona para Fase de grupos.");
+  if (isPredictionLocked(match.kickoff_at)) return quickFail("La predicción ya está cerrada para este partido.");
+
+  const predictedOutcomeRaw = value(formData, "predictedOutcome");
+  const predictedOutcome = ["home", "draw", "away"].includes(predictedOutcomeRaw)
+    ? (predictedOutcomeRaw as Outcome)
+    : null;
+  const predictedHomeScore = optionalNumber(formData, "predictedHomeScore");
+  const predictedAwayScore = optionalNumber(formData, "predictedAwayScore");
+
+  if (!predictedOutcome) return quickFail("Selecciona ganador o empate.");
+  if (!validateScoreConsistency(predictedOutcome, predictedHomeScore, predictedAwayScore)) {
+    return quickFail("El marcador no coincide con tu selección principal.");
+  }
+
+  const { error } = await admin.from("match_predictions").upsert(
+    {
+      match_id: matchId,
+      user_id: authData.user.id,
+      group_id: profile.group_id,
+      prediction_type: "group_stage",
+      predicted_outcome: predictedOutcome,
+      predicted_winner_team_id: null,
+      predicted_home_score: predictedHomeScore,
+      predicted_away_score: predictedAwayScore,
+      predicts_extra_time: null,
+      predicts_penalties: null,
+      updated_at: new Date().toISOString()
+    },
+    {
+      onConflict: "match_id,user_id"
+    }
+  );
+
+  if (error) return quickFail("No se pudo guardar la predicción.");
+
+  revalidatePath("/dashboard");
+  revalidatePath("/partidos");
+  revalidatePath("/historial");
+  revalidatePath("/ranking");
+
+  return { ok: true };
 }
