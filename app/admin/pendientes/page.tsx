@@ -11,6 +11,9 @@ import { getAdminPendingPredictionsData } from "@/lib/repository";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Group, Match, Prediction, Profile, Team } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminPendingPage({
   searchParams
 }: {
@@ -169,8 +172,9 @@ function TodayMatchMissingCard({
   const homeTeam = teams.find((team) => team.id === match.homeTeamId);
   const awayTeam = teams.find((team) => team.id === match.awayTeamId);
   const matchPredictions = predictions.filter((prediction) => prediction.matchId === match.id);
+  const predictedUserIds = new Set(matchPredictions.map((prediction) => prediction.userId));
   const totalUsers = groups.reduce((sum, group) => sum + group.users.length, 0);
-  const submitted = new Set(matchPredictions.map((prediction) => prediction.userId)).size;
+  const submitted = groups.reduce((sum, group) => sum + group.users.filter((user) => predictedUserIds.has(user.id)).length, 0);
 
   return (
     <div className="rounded-lg border border-white/10 bg-pitch/35 p-4">
@@ -196,7 +200,7 @@ function TodayMatchMissingCard({
 
       <div className="mt-3 grid gap-3 md:grid-cols-3">
         {groups.map((group) => {
-          const missing = group.users.filter((user) => !matchPredictions.some((prediction) => prediction.userId === user.id));
+          const missing = group.users.filter((user) => !predictedUserIds.has(user.id));
           return (
             <MissingList
               key={`${match.id}-${group.id}`}

@@ -140,6 +140,7 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
   revalidatePath("/partidos");
   revalidatePath(`/partidos/${matchId}`);
   revalidatePath("/historial");
+  revalidatePath("/admin/pendientes");
   if (predictionType === "group_stage") {
     return {
       status: "saved",
@@ -215,6 +216,7 @@ export async function saveQuickGroupPrediction(formData: FormData): Promise<Quic
   revalidatePath("/partidos");
   revalidatePath("/historial");
   revalidatePath("/ranking");
+  revalidatePath("/admin/pendientes");
 
   return { ok: true };
 }
