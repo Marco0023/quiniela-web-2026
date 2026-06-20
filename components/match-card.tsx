@@ -61,7 +61,7 @@ export function MatchCard({
           <div className="min-w-0 rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-2 text-sm">
             Tu predicción ya quedó guardada.
             <span className="mt-1 block font-semibold text-white/78">
-              Tu predicciÃ³n: {formatPredictionSummary(prediction!, match, teams)}
+              Tu predicción: {formatPredictionSummary(prediction!, match, teams)}
             </span>
           </div>
         ) : (

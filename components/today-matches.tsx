@@ -128,8 +128,8 @@ function TodayMatchCard({
         {!locked ? (
           userPrediction ? (
             <div className="rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-3 text-sm">
-              <p className="font-bold text-emeraldGlow">Tu predicciÃ³n estÃ¡ guardada.</p>
-              <p className="mt-1 font-semibold text-white/78">Tu predicciÃ³n: {formatPredictionSummary(userPrediction, match, teams)}</p>
+              <p className="font-bold text-emeraldGlow">Tu predicción está guardada.</p>
+              <p className="mt-1 font-semibold text-white/78">Tu predicción: {formatPredictionSummary(userPrediction, match, teams)}</p>
             </div>
           ) : (
             <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/62">
