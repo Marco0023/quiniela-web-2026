@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Clock, ExternalLink } from "lucide-react";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { formatKickoff, statusLabel } from "@/lib/format";
+import { formatPredictionScore, formatPredictionSelection, formatPredictionSummary } from "@/lib/predictions/format";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
@@ -12,6 +13,7 @@ export function TodayMatches({
   users,
   teams,
   results,
+  currentUserId,
   timezone
 }: {
   matches: Match[];
@@ -19,6 +21,7 @@ export function TodayMatches({
   users: Profile[];
   teams: Team[];
   results: MatchResult[];
+  currentUserId: string;
   timezone: string;
 }) {
   const todayMatches = matches.filter((match) => isSameLocalDay(match.kickoffAt, timezone));
@@ -54,6 +57,7 @@ export function TodayMatches({
                 teams={teams}
                 result={result}
                 locked={locked}
+                currentUserId={currentUserId}
                 timezone={timezone}
               />
             );
@@ -71,6 +75,7 @@ function TodayMatchCard({
   teams,
   result,
   locked,
+  currentUserId,
   timezone
 }: {
   match: Match;
@@ -79,11 +84,13 @@ function TodayMatchCard({
   teams: Team[];
   result?: MatchResult;
   locked: boolean;
+  currentUserId: string;
   timezone: string;
 }) {
   const homeTeam = teams.find((team) => team.id === match.homeTeamId);
   const awayTeam = teams.find((team) => team.id === match.awayTeamId);
   const finished = match.status === "finished";
+  const userPrediction = predictions.find((prediction) => prediction.userId === currentUserId);
 
   return (
     <Card className="p-0">
@@ -119,9 +126,16 @@ function TodayMatchCard({
         </div>
 
         {!locked ? (
-          <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/62">
-            Se revelan 5 minutos antes del inicio del partido.
-          </p>
+          userPrediction ? (
+            <div className="rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-3 text-sm">
+              <p className="font-bold text-emeraldGlow">Tu predicciÃ³n estÃ¡ guardada.</p>
+              <p className="mt-1 font-semibold text-white/78">Tu predicciÃ³n: {formatPredictionSummary(userPrediction, match, teams)}</p>
+            </div>
+          ) : (
+            <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/62">
+              Se revelan 5 minutos antes del inicio del partido.
+            </p>
+          )
         ) : predictions.length === 0 ? (
           <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/62">Nadie guardó predicción para este partido.</p>
         ) : (
@@ -138,16 +152,20 @@ function TodayMatchCard({
               <tbody className="divide-y divide-white/10">
                 {predictions.map((prediction) => {
                   const user = users.find((item) => item.id === prediction.userId);
+                  const isCurrentUser = prediction.userId === currentUserId;
                   return (
-                    <tr key={prediction.id}>
+                    <tr
+                      key={prediction.id}
+                      className={isCurrentUser ? "rounded-md bg-emeraldGlow/10 shadow-[inset_3px_0_0_rgba(74,222,128,0.8)]" : ""}
+                    >
                       <td className="py-3 pr-3">
                         <p className="font-bold text-white">{user?.alias ?? "Usuario"}</p>
                         <p className="text-xs text-white/45">
                           {user ? `${user.firstName} ${user.lastName}` : "Participante"}
                         </p>
                       </td>
-                      <td className="px-3 py-3 text-white/72">{formatSelection(prediction, match, teams)}</td>
-                      <td className="px-3 py-3 font-bold text-white/72">{formatScore(prediction)}</td>
+                      <td className="px-3 py-3 text-white/72">{formatPredictionSelection(prediction, match, teams)}</td>
+                      <td className="px-3 py-3 font-bold text-white/72">{formatPredictionScore(prediction, "---")}</td>
                       <td className="py-3 pl-3 text-right font-black text-gold">{prediction.pointsAwarded} pts</td>
                     </tr>
                   );
@@ -178,26 +196,6 @@ function ResultTeam({ team, fallback, align = "left" }: { team?: Team; fallback?
       <p className="mt-2 truncate text-sm font-black text-white md:text-base">{team?.name ?? fallback ?? "Por definir"}</p>
     </div>
   );
-}
-
-function formatSelection(prediction: Prediction, match: Match, teams: Team[]) {
-  if (prediction.predictionType === "group_stage") {
-    if (prediction.predictedOutcome === "draw") return "Empate";
-    if (prediction.predictedOutcome === "home") {
-      return teams.find((team) => team.id === match.homeTeamId)?.name ?? "Local";
-    }
-    if (prediction.predictedOutcome === "away") {
-      return teams.find((team) => team.id === match.awayTeamId)?.name ?? "Visitante";
-    }
-    return "Sin selección";
-  }
-
-  return teams.find((team) => team.id === prediction.predictedWinnerTeamId)?.name ?? "Por definir";
-}
-
-function formatScore(prediction: Prediction) {
-  if (prediction.predictedHomeScore === null || prediction.predictedAwayScore === null) return "---";
-  return `${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`;
 }
 
 function isSameLocalDay(date: string, timezone: string) {

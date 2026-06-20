@@ -138,6 +138,7 @@ export default async function DashboardPage() {
           users={data.groupUsers}
           teams={data.teams}
           results={data.results}
+          currentUserId={data.profile.id}
           timezone={data.profile.timezone}
         />
       </div>

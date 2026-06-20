@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, LockKeyhole } from "lucide-react";
 import { formatKickoff, statusLabel } from "@/lib/format";
+import { formatPredictionSummary } from "@/lib/predictions/format";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Match, MatchResult, Prediction, Team } from "@/lib/types";
 import { Badge, Card } from "@/components/ui";
@@ -57,9 +58,12 @@ export function MatchCard({
 
       <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3">
         {isGroupPredictionSaved ? (
-          <p className="min-w-0 rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-2 text-sm font-bold text-emeraldGlow">
+          <div className="min-w-0 rounded-md border border-emeraldGlow/25 bg-emeraldGlow/12 px-3 py-2 text-sm">
             Tu predicción ya quedó guardada.
-          </p>
+            <span className="mt-1 block font-semibold text-white/78">
+              Tu predicciÃ³n: {formatPredictionSummary(prediction!, match, teams)}
+            </span>
+          </div>
         ) : (
           <p className="min-w-0 text-sm text-white/62">
             {prediction ? "Predicción guardada" : locked ? "Cerrado sin predicción" : "Pendiente por predecir"}
