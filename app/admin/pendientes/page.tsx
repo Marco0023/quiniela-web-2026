@@ -1,11 +1,10 @@
 import { CalendarClock, ClipboardList, Trophy } from "lucide-react";
 import { AdminClassificationMissingForm } from "@/components/admin-classification-missing-form";
-import { AdminMatchMissingForm } from "@/components/admin-match-missing-form";
-import { AdminTodayPendingPanel } from "@/components/admin-today-pending-panel";
+import { AdminPendingTodaySection } from "@/components/admin-pending-today-section";
 import { AppShell } from "@/components/app-shell";
 import { Badge, Card, SectionHeader } from "@/components/ui";
-import { resolveClassificationGroups } from "@/lib/classification/groups";
 import { getAdminTodayPendingData } from "@/lib/admin/pending-live";
+import { resolveClassificationGroups } from "@/lib/classification/groups";
 import { getAdminPendingPredictionsData } from "@/lib/repository";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Group, Profile } from "@/lib/types";
@@ -52,44 +51,22 @@ export default async function AdminPendingPage({
               <p className="text-sm text-white/55">Jornada calculada con tu zona horaria: {data.profile.timezoneCountry}</p>
             </div>
           </div>
-          {todayPendingData.matches.length > 0 ? (
-            <AdminTodayPendingPanel initialData={todayPendingData} />
-          ) : (
-            <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/58">
-              No hay partidos programados para hoy en tu horario.
-            </p>
-          )}
-
-          <div className="mt-5 border-t border-white/10 pt-4">
-            <div className="mb-4 flex items-center gap-3">
-              <ClipboardList className="size-6 text-gold" />
-              <div>
-                <h2 className="text-xl font-black text-ink">Cargar predicción faltante</h2>
-                <p className="text-sm text-white/55">
-                  Solo partidos de hoy que ya cerraron y todavía no tienen resultado guardado.
-                </p>
-              </div>
-            </div>
-            <AdminMatchMissingForm
-              existingPredictions={data.predictions.map((prediction) => ({
-                matchId: prediction.matchId,
-                userId: prediction.userId
-              }))}
-              groups={privateGroups.map((group) => ({
-                id: group.id,
-                name: group.name,
-                users: group.users.map((user) => ({
-                  id: user.id,
-                  alias: user.alias,
-                  firstName: user.firstName,
-                  lastName: user.lastName
-                }))
-              }))}
-              matches={eligibleLatePredictionMatches}
-              teams={data.teams}
-              timezone={data.profile.timezone}
-            />
-          </div>
+          <AdminPendingTodaySection
+            groups={privateGroups.map((group) => ({
+              id: group.id,
+              name: group.name,
+              users: group.users.map((user) => ({
+                id: user.id,
+                alias: user.alias,
+                firstName: user.firstName,
+                lastName: user.lastName
+              }))
+            }))}
+            initialData={todayPendingData}
+            matches={eligibleLatePredictionMatches}
+            teams={data.teams}
+            timezone={data.profile.timezone}
+          />
         </Card>
 
         <Card>
@@ -207,7 +184,10 @@ function MissingList({
           {items.map((user) => (
             <li key={user.id} className="rounded bg-white/[0.04] px-2 py-1.5 text-sm text-white/72">
               <strong className="text-white">{user.alias}</strong>
-              <span className="text-white/45"> - {user.firstName} {user.lastName}</span>
+              <span className="text-white/45">
+                {" "}
+                - {user.firstName} {user.lastName}
+              </span>
             </li>
           ))}
         </ul>

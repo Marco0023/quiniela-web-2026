@@ -1,20 +1,34 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ClipboardList, DatabaseZap, UsersRound } from "lucide-react";
 import { AdminPredictionsCarousel, AdminRankingCarousel } from "@/components/admin-home-panels";
+import { AdminQuickResultForm } from "@/components/admin-quick-result-form";
 import { AppShell } from "@/components/app-shell";
 import { Badge, Card, SectionHeader } from "@/components/ui";
-import { formatKickoff } from "@/lib/format";
 import { getAdminHomeData } from "@/lib/repository";
-import type { Match, Team } from "@/lib/types";
 
-export default async function AdminHomePage() {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function AdminHomePage({
+  searchParams
+}: {
+  searchParams: Promise<{ error?: string; saved?: string }>;
+}) {
+  const status = await searchParams;
   const data = await getAdminHomeData();
   const closedWithoutResults = data.closedWithoutResults.slice(0, 5);
 
   return (
     <AppShell showAdmin>
       <SectionHeader eyebrow="Panel admin" title="Centro de control" />
+      {status.error ? (
+        <p className="mb-4 rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">{status.error}</p>
+      ) : null}
+      {status.saved ? (
+        <p className="mb-4 rounded-md bg-emeraldGlow/12 px-3 py-2 text-sm text-emeraldGlow">
+          Resultado guardado y puntos recalculados.
+        </p>
+      ) : null}
       <div className="grid gap-5">
         <section className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
           <Card>
@@ -33,19 +47,31 @@ export default async function AdminHomePage() {
             </div>
           </Card>
 
-          <Link href="/admin/pendientes">
-            <Card className="h-full border-gold/25 bg-gold/10 transition hover:border-gold/70">
-              <ClipboardList className="mb-4 size-7 text-gold" />
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-gold">Pendientes</p>
-              <h2 className="mt-2 text-2xl font-black text-ink">Ver predicciones faltantes</h2>
-              <p className="mt-3 text-sm leading-6 text-white/62">
-                {data.pendingPredictionCount} pendientes estimados para la jornada de hoy.
-              </p>
-              <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-gold">
-                Abrir pendientes <ArrowRight className="size-4" />
-              </span>
-            </Card>
-          </Link>
+          <div className="grid gap-4">
+            <Link href="/admin/pendientes">
+              <Card className="h-full border-gold/25 bg-gold/10 transition hover:border-gold/70">
+                <ClipboardList className="mb-4 size-7 text-gold" />
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-gold">Pendientes</p>
+                <h2 className="mt-2 text-2xl font-black text-ink">Ver predicciones faltantes</h2>
+                <p className="mt-3 text-sm leading-6 text-white/62">
+                  {data.pendingPredictionCount} pendientes estimados para la jornada de hoy.
+                </p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-black text-gold">
+                  Abrir pendientes <ArrowRight className="size-4" />
+                </span>
+              </Card>
+            </Link>
+            <Link href="/admin/usuarios">
+              <Card className="h-full transition hover:border-gold/60">
+                <UsersRound className="mb-3 size-6 text-gold" />
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-gold">Usuarios</p>
+                <h2 className="mt-2 text-xl font-black text-ink">Gestionar participantes</h2>
+                <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-gold">
+                  Abrir usuarios <ArrowRight className="size-4" />
+                </span>
+              </Card>
+            </Link>
+          </div>
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
@@ -65,21 +91,10 @@ export default async function AdminHomePage() {
                 Cargar
               </Link>
             </div>
-            <div className="divide-y divide-white/10">
+            <div className="grid gap-3 p-4">
               {closedWithoutResults.length > 0 ? (
                 closedWithoutResults.map((match) => (
-                  <div key={match.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                    <div>
-                      <MatchTitle match={match} teams={data.teams} />
-                      <p className="mt-2 text-xs text-white/45">{formatKickoff(match.kickoffAt, data.profile.timezone)}</p>
-                    </div>
-                    <Link
-                      href="/admin/resultados"
-                      className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-black text-gold transition hover:border-gold/60"
-                    >
-                      Guardar resultado
-                    </Link>
-                  </div>
+                  <AdminQuickResultForm key={match.id} match={match} teams={data.teams} timezone={data.profile.timezone} />
                 ))
               ) : (
                 <p className="px-4 py-5 text-sm text-white/55">No hay partidos cerrados pendientes de resultado.</p>
@@ -105,27 +120,5 @@ export default async function AdminHomePage() {
         </section>
       </div>
     </AppShell>
-  );
-}
-
-function MatchTitle({ match, teams }: { match: Match; teams: Team[] }) {
-  const homeTeam = teams.find((team) => team.id === match.homeTeamId);
-  const awayTeam = teams.find((team) => team.id === match.awayTeamId);
-
-  return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2 font-black text-white">
-      <TeamLabel team={homeTeam} fallback={match.homePlaceholder ?? "Local"} />
-      <span className="rounded bg-white/10 px-2 py-1 text-xs text-white/55">vs</span>
-      <TeamLabel team={awayTeam} fallback={match.awayPlaceholder ?? "Visitante"} />
-    </div>
-  );
-}
-
-function TeamLabel({ fallback, team }: { fallback: string; team?: Team }) {
-  return (
-    <span className="inline-flex min-w-0 items-center gap-2">
-      {team?.flagUrl ? <Image src={team.flagUrl} alt="" width={24} height={16} className="h-4 w-6 rounded-sm object-cover" /> : null}
-      <span className="truncate">{team?.name ?? fallback}</span>
-    </span>
   );
 }

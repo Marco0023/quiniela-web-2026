@@ -61,6 +61,7 @@ export function AdminMatchMissingForm({
   const [winnerTeamId, setWinnerTeamId] = useState(selectedMatch?.homeTeamId ?? "");
   const [extraTime, setExtraTime] = useState(false);
   const [penalties, setPenalties] = useState(false);
+  const effectiveTargetUserId = missingUsers.some((user) => user.id === targetUserId) ? targetUserId : missingUsers[0]?.id ?? "";
 
   const homeTeam = teams.find((team) => team.id === selectedMatch?.homeTeamId);
   const awayTeam = teams.find((team) => team.id === selectedMatch?.awayTeamId);
@@ -69,7 +70,7 @@ export function AdminMatchMissingForm({
   const parsedAway = awayScore === "" ? null : Number(awayScore);
   const scoreIsValid = validateScoreConsistency(outcome, parsedHome, parsedAway);
   const isComplete =
-    Boolean(selectedMatch && targetUserId) &&
+    Boolean(selectedMatch && effectiveTargetUserId) &&
     (predictionType === "group_stage" ? Boolean(outcome) && scoreIsValid : Boolean(winnerTeamId));
 
   function handleMatchChange(nextMatchId: string) {
@@ -125,7 +126,7 @@ export function AdminMatchMissingForm({
         </label>
         <label className="grid gap-2 text-sm font-semibold text-white/78">
           Participante faltante
-          <select className={inputClass} value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
+          <select className={inputClass} value={effectiveTargetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
             {missingUsers.length > 0 ? (
               missingUsers.map((user) => (
                 <option key={user.id} value={user.id}>
@@ -140,7 +141,7 @@ export function AdminMatchMissingForm({
       </div>
 
       <input name="matchId" type="hidden" value={matchId} />
-      <input name="targetUserId" type="hidden" value={targetUserId} />
+      <input name="targetUserId" type="hidden" value={effectiveTargetUserId} />
       <input name="predictedOutcome" type="hidden" value={outcome} />
       <input name="predictedWinnerTeamId" type="hidden" value={winnerTeamId} />
       <input name="predictsExtraTime" type="hidden" value={String(extraTime)} />

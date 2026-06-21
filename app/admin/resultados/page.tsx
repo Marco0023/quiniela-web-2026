@@ -8,6 +8,9 @@ import { statusLabel } from "@/lib/format";
 import { saveMatchResult } from "@/lib/admin/results-actions";
 import { getAdminResultsData } from "@/lib/repository";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminResultsPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string; synced?: string }> }) {
   const status = await searchParams;
   const data = await getAdminResultsData();

@@ -267,6 +267,13 @@ function mapBadgeEvent(row: BadgeEventRow): BadgeEvent {
   };
 }
 
+function filterContradictoryMissedPredictionEvents(events: BadgeEvent[], predictions: Prediction[]) {
+  return events.filter((event) => {
+    if (event.badgeId !== "missed_three_predictions" || !event.matchId) return true;
+    return !predictions.some((prediction) => prediction.userId === event.userId && prediction.matchId === event.matchId);
+  });
+}
+
 async function getSessionUser() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -332,14 +339,22 @@ export async function getAdminResultsData() {
     ])
   );
 
+  const teams =
+    teamsResponse.data && teamsResponse.data.length > 0
+      ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
+      : sortTeamsBySpanishName(mockTeams);
+  const matches = matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
+  const sortedMatches = [...matches].sort((a, b) => {
+    const aHasResult = resultsByMatchId.has(a.id);
+    const bHasResult = resultsByMatchId.has(b.id);
+    if (aHasResult !== bHasResult) return aHasResult ? 1 : -1;
+    return new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime();
+  });
+
   return {
     profile,
-    teams:
-      teamsResponse.data && teamsResponse.data.length > 0
-        ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam))
-        : sortTeamsBySpanishName(mockTeams),
-    matches:
-      matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches,
+    teams,
+    matches: sortedMatches,
     resultsByMatchId
   };
 }
@@ -416,7 +431,8 @@ export async function getAdminHomeData() {
   const classificationPredictions = classificationPredictionsResponse.data
     ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
-  const badgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const rawBadgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const badgeEvents = filterContradictoryMissedPredictionEvents(rawBadgeEvents, predictions);
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
   const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
   const closedWithoutResults = matches
@@ -754,7 +770,8 @@ export async function getDashboardData({ requireChampion = true } = {}) {
   const groupClassificationPredictions = groupClassificationPredictionsResponse.data
     ? (groupClassificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
-  const badgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const rawBadgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const badgeEvents = filterContradictoryMissedPredictionEvents(rawBadgeEvents, groupPredictions);
   const latestResult = [...results]
     .filter((result) => result.updatedAt)
     .sort((a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime())[0];

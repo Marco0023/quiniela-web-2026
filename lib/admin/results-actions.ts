@@ -60,7 +60,10 @@ export async function saveMatchResult(formData: FormData) {
   await requireAdminProfile();
 
   const matchId = text(formData, "matchId");
-  if (!matchId) redirect("/admin/resultados?error=Partido no encontrado");
+  const returnTo = text(formData, "returnTo");
+  const redirectPath = returnTo === "/inicio-admin" ? "/inicio-admin" : "/admin/resultados";
+  const redirectWithError = (message: string): never => redirect(`${redirectPath}?error=${encodeURIComponent(message)}`);
+  if (!matchId) redirectWithError("Partido no encontrado");
 
   const admin = createAdminClient();
   const { data: matchRow } = await admin.from("matches").select("*").eq("id", matchId).single<{
@@ -76,7 +79,8 @@ export async function saveMatchResult(formData: FormData) {
     status: Match["status"];
   }>();
 
-  if (!matchRow) redirect("/admin/resultados?error=Partido no encontrado");
+  if (!matchRow) redirectWithError("Partido no encontrado");
+  const matchData = matchRow!;
 
   const homeScore90 = optionalNumber(formData, "homeScore90");
   const awayScore90 = optionalNumber(formData, "awayScore90");
@@ -84,20 +88,20 @@ export async function saveMatchResult(formData: FormData) {
   const wentExtraTime = bool(formData, "wentExtraTime");
   const wentPenalties = bool(formData, "wentPenalties");
 
-  if ((matchRow.phase === "group_stage" || matchRow.phase === "final") && (homeScore90 === null || awayScore90 === null)) {
-    redirect(`/admin/resultados?error=${encodeURIComponent("Ingresa marcador de 90 minutos.")}`);
+  if ((matchData.phase === "group_stage" || matchData.phase === "final") && (homeScore90 === null || awayScore90 === null)) {
+    redirectWithError("Ingresa marcador de 90 minutos.");
   }
 
-  if (matchRow.phase !== "group_stage" && !winnerTeamId) {
+  if (matchData.phase !== "group_stage" && !winnerTeamId) {
     redirect(`/admin/resultados?error=${encodeURIComponent("Selecciona ganador o quién avanza.")}`);
   }
 
   const computedWinner =
     winnerTeamId ??
     (homeScore90 !== null && awayScore90 !== null && homeScore90 > awayScore90
-      ? matchRow.home_team_id
+      ? matchData.home_team_id
       : homeScore90 !== null && awayScore90 !== null && awayScore90 > homeScore90
-        ? matchRow.away_team_id
+        ? matchData.away_team_id
         : null);
 
   const resultPayload = {
@@ -116,7 +120,7 @@ export async function saveMatchResult(formData: FormData) {
 
   const { error: resultError } = await admin.from("match_results").upsert(resultPayload, { onConflict: "match_id" });
   if (resultError) {
-    redirect(`/admin/resultados?error=${encodeURIComponent("No se pudo guardar el resultado.")}`);
+    redirectWithError("No se pudo guardar el resultado.");
   }
 
   await admin.from("matches").update({ status: "finished", updated_at: new Date().toISOString() }).eq("id", matchId);
@@ -131,15 +135,15 @@ export async function saveMatchResult(formData: FormData) {
   );
 
   const match: Match = {
-    id: matchRow.id,
-    phase: matchRow.phase,
-    matchNumber: matchRow.match_number,
-    homeTeamId: matchRow.home_team_id,
-    awayTeamId: matchRow.away_team_id,
-    homePlaceholder: matchRow.home_placeholder ?? undefined,
-    awayPlaceholder: matchRow.away_placeholder ?? undefined,
-    kickoffAt: matchRow.kickoff_at,
-    tournamentGroup: matchRow.tournament_group,
+    id: matchData.id,
+    phase: matchData.phase,
+    matchNumber: matchData.match_number,
+    homeTeamId: matchData.home_team_id,
+    awayTeamId: matchData.away_team_id,
+    homePlaceholder: matchData.home_placeholder ?? undefined,
+    awayPlaceholder: matchData.away_placeholder ?? undefined,
+    kickoffAt: matchData.kickoff_at,
+    tournamentGroup: matchData.tournament_group,
     status: "finished"
   };
 
@@ -191,7 +195,7 @@ export async function saveMatchResult(formData: FormData) {
     provider: "manual",
     sync_type: "results",
     status: "success",
-    message: `Resultado manual guardado para partido ${matchRow.match_number}.`,
+    message: `Resultado manual guardado para partido ${matchData.match_number}.`,
     metadata: {
       matchId,
       predictionsScored: predictionRows?.length ?? 0,
@@ -204,7 +208,7 @@ export async function saveMatchResult(formData: FormData) {
   revalidatePath("/ranking");
   revalidatePath("/historial");
   revalidatePath("/inicio-admin");
-  redirect("/admin/resultados?saved=1");
+  redirect(`${redirectPath}?saved=1`);
 }
 
 async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient>, matchId: string) {

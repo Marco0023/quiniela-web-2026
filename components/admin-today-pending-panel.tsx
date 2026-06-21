@@ -1,41 +1,41 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui";
 import type { AdminTodayPendingData } from "@/lib/admin/pending-live";
 
-export function AdminTodayPendingPanel({ initialData }: { initialData: AdminTodayPendingData }) {
+export function AdminTodayPendingPanel({
+  initialData,
+  onDataChange
+}: {
+  initialData: AdminTodayPendingData;
+  onDataChange?: (data: AdminTodayPendingData) => void;
+}) {
   const [data, setData] = useState(initialData);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [updatedAt, setUpdatedAt] = useState(initialData.generatedAt);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchLiveData(controller.signal, false);
-    return () => controller.abort();
-  }, []);
-
-  async function fetchLiveData(signal?: AbortSignal, showLoading = true) {
-    if (showLoading) setIsRefreshing(true);
+  async function fetchLiveData() {
+    setIsRefreshing(true);
     setError("");
 
     try {
       const response = await fetch(`/api/admin/pendientes/partidos?t=${Date.now()}`, {
-        cache: "no-store",
-        signal
+        cache: "no-store"
       });
       if (!response.ok) throw new Error("No se pudieron actualizar las predicciones.");
       const freshData = (await response.json()) as AdminTodayPendingData;
       setData(freshData);
       setUpdatedAt(freshData.generatedAt);
+      onDataChange?.(freshData);
     } catch (fetchError) {
       if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
       setError(fetchError instanceof Error ? fetchError.message : "No se pudieron actualizar las predicciones.");
     } finally {
-      if (showLoading) setIsRefreshing(false);
+      setIsRefreshing(false);
     }
   }
 

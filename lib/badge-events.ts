@@ -163,6 +163,12 @@ export async function recordBadgeEventsForMatch(admin: AdminClient, matchId: str
 
     for (const badge of afterBadges) {
       if (!liveBadgeIds.has(badge.id) && beforeBadges.has(badge.id)) continue;
+      if (
+        badge.id === "missed_three_predictions" &&
+        predictions.some((prediction) => prediction.userId === profile.id && prediction.matchId === matchId)
+      ) {
+        continue;
+      }
       rows.push({
         group_id: profile.groupId,
         user_id: profile.id,

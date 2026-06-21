@@ -39,6 +39,7 @@ type MatchRow = {
 };
 
 type PredictionRow = {
+  id: string;
   match_id: string;
   user_id: string;
 };
@@ -47,6 +48,11 @@ export type AdminTodayPendingData = {
   generatedAt: string;
   timezone: string;
   timezoneCountry: string;
+  predictions: {
+    id: string;
+    matchId: string;
+    userId: string;
+  }[];
   matches: {
     id: string;
     phase: string;
@@ -106,7 +112,7 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
   const matchIds = todayMatches.map((match) => match.id);
   const predictionsResponse =
     matchIds.length > 0
-      ? await admin.from("match_predictions").select("match_id,user_id").in("match_id", matchIds)
+      ? await admin.from("match_predictions").select("id,match_id,user_id").in("match_id", matchIds)
       : { data: [] as PredictionRow[] };
 
   const predictions = (predictionsResponse.data ?? []) as PredictionRow[];
@@ -120,6 +126,11 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
     generatedAt: new Date().toISOString(),
     timezone,
     timezoneCountry: profile.timezone_country,
+    predictions: predictions.map((prediction) => ({
+      id: prediction.id,
+      matchId: prediction.match_id,
+      userId: prediction.user_id
+    })),
     matches: todayMatches.map((match) => {
       const predictedUserIds = new Set(predictions.filter((prediction) => prediction.match_id === match.id).map((prediction) => prediction.user_id));
       const groupsWithMissing = usersByGroup.map((group) => {
