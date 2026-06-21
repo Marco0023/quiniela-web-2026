@@ -2,6 +2,7 @@ import { scoreCompletedClassificationPredictions } from "@/lib/classification/sc
 import { recordBadgeEventsForMatch } from "@/lib/badge-events";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllRows } from "@/lib/supabase/pagination";
 import type { FootballApiProvider, SyncedMatch, SyncedResult, SyncedTeam } from "@/lib/football-api/provider";
 import type { ChampionPrediction, Match, MatchResult, Prediction } from "@/lib/types";
 
@@ -275,11 +276,15 @@ async function scoreMatchPredictions(admin: ReturnType<typeof createAdminClient>
 }
 
 async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient>, matchId: string) {
-  const [{ data: profileRows }, { data: predictionRows }] = await Promise.all([
+  const [{ data: profileRows }, predictionRows] = await Promise.all([
     admin.from("profiles").select("id,group_id,role").eq("role", "participant"),
-    admin.from("match_predictions").select("user_id,group_id,points_awarded")
+    fetchAllRows<{ user_id: string; group_id: string; points_awarded: number }>(() =>
+      admin.from("match_predictions").select("user_id,group_id,points_awarded").order("user_id", { ascending: true })
+    )
   ]);
-  const { data: classificationRows } = await admin.from("group_classification_predictions").select("user_id,app_group_id,points_awarded");
+  const classificationRows = await fetchAllRows<{ user_id: string; app_group_id: string; points_awarded: number }>(() =>
+    admin.from("group_classification_predictions").select("user_id,app_group_id,points_awarded").order("user_id", { ascending: true })
+  );
 
   const usersByGroup = new Map<string, { id: string; group_id: string }[]>();
   for (const profile of profileRows ?? []) {
@@ -294,10 +299,10 @@ async function recordRankingSnapshots(admin: ReturnType<typeof createAdminClient
       .map((user) => ({
         userId: user.id,
         groupId,
-        points: (predictionRows ?? [])
+        points: predictionRows
           .filter((prediction) => prediction.user_id === user.id)
           .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0) +
-          (classificationRows ?? [])
+          classificationRows
             .filter((prediction) => prediction.user_id === user.id)
             .reduce((total, prediction) => total + Number(prediction.points_awarded ?? 0), 0)
       }))

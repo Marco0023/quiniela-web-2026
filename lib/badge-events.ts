@@ -1,5 +1,6 @@
 import { evaluateBadgesForUser, liveBadgeIds, type BadgeId } from "@/lib/badges";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllRows } from "@/lib/supabase/pagination";
 import type { ChampionPrediction, Match, MatchResult, Prediction, Profile, RankingSnapshot } from "@/lib/types";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -90,27 +91,28 @@ export async function recordBadgeEventsForMatch(admin: AdminClient, matchId: str
     profilesResponse,
     matchesResponse,
     resultsResponse,
-    predictionsResponse,
+    predictionRows,
     championsResponse,
-    snapshotsResponse,
-    classificationsResponse
+    snapshotRows,
+    classificationRows
   ] = await Promise.all([
     admin.from("profiles").select("*").eq("role", "participant"),
     admin.from("matches").select("*").order("kickoff_at"),
     admin.from("match_results").select("*"),
-    admin.from("match_predictions").select("*"),
+    fetchAllRows<PredictionRow>(() => admin.from("match_predictions").select("*").order("updated_at", { ascending: true })),
     admin.from("champion_predictions").select("user_id,team_id,created_at"),
-    admin.from("ranking_snapshots").select("*").order("created_at", { ascending: true }),
-    admin.from("group_classification_predictions").select("user_id,app_group_id,points_awarded")
+    fetchAllRows<RankingSnapshotRow>(() => admin.from("ranking_snapshots").select("*").order("created_at", { ascending: true })),
+    fetchAllRows<ClassificationPredictionRow>(() =>
+      admin.from("group_classification_predictions").select("user_id,app_group_id,points_awarded").order("user_id", { ascending: true })
+    )
   ]);
 
   const profiles = ((profilesResponse.data as ProfileRow[] | null) ?? []).map(mapProfile).filter((profile) => profile.groupId);
   const matches = ((matchesResponse.data as MatchRow[] | null) ?? []).map(mapMatch);
   const results = ((resultsResponse.data as ResultRow[] | null) ?? []).map(mapResult);
-  const predictions = ((predictionsResponse.data as PredictionRow[] | null) ?? []).map(mapPrediction);
+  const predictions = predictionRows.map(mapPrediction);
   const championPredictions = ((championsResponse.data as ChampionRow[] | null) ?? []).map(mapChampion);
-  const rankingSnapshots = ((snapshotsResponse.data as RankingSnapshotRow[] | null) ?? []).map(mapRankingSnapshot);
-  const classificationRows = (classificationsResponse.data as ClassificationPredictionRow[] | null) ?? [];
+  const rankingSnapshots = snapshotRows.map(mapRankingSnapshot);
   const match = matches.find((item) => item.id === matchId);
 
   if (!match) return;

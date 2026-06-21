@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { championPredictions, currentUser, matches as mockMatches, predictions as mockPredictions, profiles, teams as mockTeams } from "@/lib/mock-data";
 import { GROUPS } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllRows } from "@/lib/supabase/pagination";
 import { createClient } from "@/lib/supabase/server";
 import type {
   ChampionPrediction,
@@ -403,19 +404,21 @@ export async function getAdminHomeData() {
     profilesResponse,
     teamsResponse,
     matchesResponse,
-    predictionsResponse,
+    predictionRows,
     resultsResponse,
-    classificationPredictionsResponse,
-    badgeEventsResponse
+    classificationPredictionRows,
+    badgeEventRows
   ] = await Promise.all([
     admin.from("groups").select("id,name,invite_code").order("name"),
     admin.from("profiles").select("*").eq("role", "participant").order("alias"),
     admin.from("teams").select("id,name,short_name,flag_url").order("name"),
     admin.from("matches").select("*").order("kickoff_at"),
-    admin.from("match_predictions").select("*"),
+    fetchAllRows<PredictionRow>(() => admin.from("match_predictions").select("*").order("updated_at", { ascending: true })),
     admin.from("match_results").select("*"),
-    admin.from("group_classification_predictions").select("*"),
-    admin.from("badge_events").select("*").order("created_at", { ascending: false })
+    fetchAllRows<ClassificationPredictionRow>(() =>
+      admin.from("group_classification_predictions").select("*").order("updated_at", { ascending: true })
+    ),
+    fetchAllRows<BadgeEventRow>(() => admin.from("badge_events").select("*").order("created_at", { ascending: false }))
   ]);
 
   const groups = groupsResponse.data ? (groupsResponse.data as GroupRow[]).map(mapGroup) : [];
@@ -426,12 +429,10 @@ export async function getAdminHomeData() {
       : sortTeamsBySpanishName(mockTeams);
   const matches =
     matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
-  const predictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
+  const predictions = predictionRows.map(mapPrediction);
   const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
-  const classificationPredictions = classificationPredictionsResponse.data
-    ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
-    : [];
-  const rawBadgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const classificationPredictions = classificationPredictionRows.map(mapClassificationPrediction);
+  const rawBadgeEvents = badgeEventRows.map(mapBadgeEvent);
   const badgeEvents = filterContradictoryMissedPredictionEvents(rawBadgeEvents, predictions);
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
   const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
@@ -543,8 +544,8 @@ export async function getAdminPredictionsData() {
   if (profile.role !== "admin") redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [predictionsResponse, profilesResponse, matchesResponse, teamsResponse] = await Promise.all([
-    admin.from("match_predictions").select("*").order("updated_at", { ascending: false }),
+  const [predictionRows, profilesResponse, matchesResponse, teamsResponse] = await Promise.all([
+    fetchAllRows<PredictionRow>(() => admin.from("match_predictions").select("*").order("updated_at", { ascending: false })),
     admin.from("profiles").select("*"),
     admin.from("matches").select("*").order("kickoff_at"),
     admin.from("teams").select("id,name,short_name,flag_url").order("name")
@@ -552,7 +553,7 @@ export async function getAdminPredictionsData() {
 
   return {
     profile,
-    predictions: predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [],
+    predictions: predictionRows.map(mapPrediction),
     users: profilesResponse.data ? (profilesResponse.data as ProfileRow[]).map(mapProfile) : [],
     matches: matchesResponse.data ? (matchesResponse.data as MatchRow[]).map(mapMatch) : [],
     teams: teamsResponse.data ? sortTeamsBySpanishName((teamsResponse.data as TeamRow[]).map(mapTeam)) : []
@@ -569,8 +570,8 @@ export async function getAdminPendingPredictionsData() {
     profilesResponse,
     teamsResponse,
     matchesResponse,
-    predictionsResponse,
-    classificationPredictionsResponse,
+    predictionRows,
+    classificationPredictionRows,
     resultsResponse
   ] =
     await Promise.all([
@@ -578,8 +579,10 @@ export async function getAdminPendingPredictionsData() {
       admin.from("profiles").select("*").eq("role", "participant").order("alias"),
       admin.from("teams").select("id,name,short_name,flag_url").order("name"),
       admin.from("matches").select("*").order("kickoff_at"),
-      admin.from("match_predictions").select("*"),
-      admin.from("group_classification_predictions").select("*"),
+      fetchAllRows<PredictionRow>(() => admin.from("match_predictions").select("*").order("updated_at", { ascending: true })),
+      fetchAllRows<ClassificationPredictionRow>(() =>
+        admin.from("group_classification_predictions").select("*").order("updated_at", { ascending: true })
+      ),
       admin.from("match_results").select("*")
     ]);
 
@@ -591,10 +594,8 @@ export async function getAdminPendingPredictionsData() {
       : sortTeamsBySpanishName(mockTeams);
   const matches =
     matchesResponse.data && matchesResponse.data.length > 0 ? (matchesResponse.data as MatchRow[]).map(mapMatch) : mockMatches;
-  const predictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
-  const classificationPredictions = classificationPredictionsResponse.data
-    ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
-    : [];
+  const predictions = predictionRows.map(mapPrediction);
+  const classificationPredictions = classificationPredictionRows.map(mapClassificationPrediction);
   const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
   const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
@@ -706,12 +707,12 @@ export async function getDashboardData({ requireChampion = true } = {}) {
     predictionsResponse,
     resultsResponse,
     groupProfilesResponse,
-    groupPredictionsResponse,
+    groupPredictionRows,
     championPredictionsResponse,
-    rankingSnapshotsResponse,
+    rankingSnapshotRows,
     classificationPredictionsResponse,
-    groupClassificationPredictionsResponse,
-    badgeEventsResponse
+    groupClassificationPredictionRows,
+    badgeEventRows
   ] = await Promise.all([
     profile.groupId
       ? admin.from("groups").select("id,name,invite_code").eq("id", profile.groupId).maybeSingle<GroupRow>()
@@ -725,21 +726,27 @@ export async function getDashboardData({ requireChampion = true } = {}) {
       ? admin.from("profiles").select("*").eq("group_id", profile.groupId).eq("role", "participant")
       : Promise.resolve({ data: [], error: null }),
     profile.groupId
-      ? admin.from("match_predictions").select("*").eq("group_id", profile.groupId)
-      : Promise.resolve({ data: [], error: null }),
+      ? fetchAllRows<PredictionRow>(() =>
+          admin.from("match_predictions").select("*").eq("group_id", profile.groupId).order("updated_at", { ascending: true })
+        )
+      : Promise.resolve([]),
     admin.from("champion_predictions").select("user_id,team_id,created_at"),
     profile.groupId
-      ? admin.from("ranking_snapshots").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
+      ? fetchAllRows<RankingSnapshotRow>(() =>
+          admin.from("ranking_snapshots").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: true })
+        )
+      : Promise.resolve([]),
     profile.groupId
       ? admin.from("group_classification_predictions").select("*").eq("user_id", profile.id)
       : Promise.resolve({ data: [], error: null }),
     profile.groupId
-      ? admin.from("group_classification_predictions").select("*").eq("app_group_id", profile.groupId)
-      : Promise.resolve({ data: [], error: null }),
+      ? fetchAllRows<ClassificationPredictionRow>(() =>
+          admin.from("group_classification_predictions").select("*").eq("app_group_id", profile.groupId).order("updated_at", { ascending: true })
+        )
+      : Promise.resolve([]),
     profile.groupId
-      ? admin.from("badge_events").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: false })
-      : Promise.resolve({ data: [], error: null })
+      ? fetchAllRows<BadgeEventRow>(() => admin.from("badge_events").select("*").eq("group_id", profile.groupId).order("created_at", { ascending: false }))
+      : Promise.resolve([])
   ]);
 
   const champion = championResponse.data ? mapChampion(championResponse.data) : null;
@@ -756,21 +763,17 @@ export async function getDashboardData({ requireChampion = true } = {}) {
   const userPredictions = predictionsResponse.data ? (predictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
   const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
   const groupProfiles = groupProfilesResponse.data ? (groupProfilesResponse.data as ProfileRow[]).map(mapProfile) : [];
-  const groupPredictions = groupPredictionsResponse.data ? (groupPredictionsResponse.data as PredictionRow[]).map(mapPrediction) : [];
+  const groupPredictions = groupPredictionRows.map(mapPrediction);
   const groupUserIds = new Set(groupProfiles.map((user) => user.id));
   const groupChampionPredictions = championPredictionsResponse.data
     ? (championPredictionsResponse.data as ChampionRow[]).map(mapChampion).filter((item) => groupUserIds.has(item.userId))
     : [];
-  const groupRankingSnapshots = rankingSnapshotsResponse.data
-    ? (rankingSnapshotsResponse.data as RankingSnapshotRow[]).map(mapRankingSnapshot)
-    : [];
+  const groupRankingSnapshots = rankingSnapshotRows.map(mapRankingSnapshot);
   const classificationPredictions = classificationPredictionsResponse.data
     ? (classificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
     : [];
-  const groupClassificationPredictions = groupClassificationPredictionsResponse.data
-    ? (groupClassificationPredictionsResponse.data as ClassificationPredictionRow[]).map(mapClassificationPrediction)
-    : [];
-  const rawBadgeEvents = badgeEventsResponse.data ? (badgeEventsResponse.data as BadgeEventRow[]).map(mapBadgeEvent) : [];
+  const groupClassificationPredictions = groupClassificationPredictionRows.map(mapClassificationPrediction);
+  const rawBadgeEvents = badgeEventRows.map(mapBadgeEvent);
   const badgeEvents = filterContradictoryMissedPredictionEvents(rawBadgeEvents, groupPredictions);
   const latestResult = [...results]
     .filter((result) => result.updatedAt)
