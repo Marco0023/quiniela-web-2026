@@ -598,7 +598,12 @@ export async function getAdminPendingPredictionsData() {
   const classificationPredictions = classificationPredictionRows.map(mapClassificationPrediction);
   const results = resultsResponse.data ? (resultsResponse.data as ResultRow[]).map(mapResult) : [];
   const todayKey = dateKeyInTimezone(new Date(), profile.timezone);
-  const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone) === todayKey);
+  const yesterdayKey = dateKeyInTimezone(addDays(new Date(), -1), profile.timezone);
+  const resultIds = new Set(results.map((result) => result.matchId));
+  const todayMatches = matches.filter((match) => {
+    const matchKey = dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone);
+    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id);
+  });
 
   return {
     profile,
@@ -620,6 +625,12 @@ function dateKeyInTimezone(date: Date, timezone: string) {
     month: "2-digit",
     day: "2-digit"
   }).format(date);
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
 }
 
 export async function getVisibleMatchPredictions(matchId: string) {

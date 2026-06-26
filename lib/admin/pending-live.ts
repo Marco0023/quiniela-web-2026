@@ -44,6 +44,10 @@ type PredictionRow = {
   user_id: string;
 };
 
+type ResultRow = {
+  match_id: string;
+};
+
 export type AdminTodayPendingData = {
   generatedAt: string;
   timezone: string;
@@ -59,6 +63,7 @@ export type AdminTodayPendingData = {
     phaseLabel: string;
     status: string;
     statusLabel: string;
+    dayLabel: "Hoy" | "Ayer";
     kickoffAt: string;
     homeTeam: { id: string; name: string; flagUrl: string } | null;
     awayTeam: { id: string; name: string; flagUrl: string } | null;
@@ -95,21 +100,28 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
 
   if (profile?.role !== "admin") redirect("/dashboard");
 
-  const [groupsResponse, usersResponse, teamsResponse, matchesResponse] = await Promise.all([
+  const [groupsResponse, usersResponse, teamsResponse, matchesResponse, resultsResponse] = await Promise.all([
     admin.from("groups").select("id,name").order("name"),
     admin.from("profiles").select("id,first_name,last_name,alias,role,group_id,timezone_country,timezone").eq("role", "participant").order("alias"),
     admin.from("teams").select("id,name,flag_url"),
-    admin.from("matches").select("id,phase,status,home_team_id,away_team_id,home_placeholder,away_placeholder,kickoff_at").order("kickoff_at")
+    admin.from("matches").select("id,phase,status,home_team_id,away_team_id,home_placeholder,away_placeholder,kickoff_at").order("kickoff_at"),
+    admin.from("match_results").select("match_id")
   ]);
 
   const groups = (groupsResponse.data ?? []) as GroupRow[];
   const users = (usersResponse.data ?? []) as ProfileRow[];
   const teams = (teamsResponse.data ?? []) as TeamRow[];
   const matches = (matchesResponse.data ?? []) as MatchRow[];
+  const results = (resultsResponse.data ?? []) as ResultRow[];
   const timezone = profile.timezone;
   const todayKey = dateKeyInTimezone(new Date(), timezone);
-  const todayMatches = matches.filter((match) => dateKeyInTimezone(new Date(match.kickoff_at), timezone) === todayKey);
-  const matchIds = todayMatches.map((match) => match.id);
+  const yesterdayKey = dateKeyInTimezone(addDays(new Date(), -1), timezone);
+  const resultIds = new Set(results.map((result) => result.match_id));
+  const recentMatches = matches.filter((match) => {
+    const matchKey = dateKeyInTimezone(new Date(match.kickoff_at), timezone);
+    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id);
+  });
+  const matchIds = recentMatches.map((match) => match.id);
   const predictionsResponse =
     matchIds.length > 0
       ? await admin.from("match_predictions").select("id,match_id,user_id").in("match_id", matchIds)
@@ -131,7 +143,8 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
       matchId: prediction.match_id,
       userId: prediction.user_id
     })),
-    matches: todayMatches.map((match) => {
+    matches: recentMatches.map((match) => {
+      const matchKey = dateKeyInTimezone(new Date(match.kickoff_at), timezone);
       const predictedUserIds = new Set(predictions.filter((prediction) => prediction.match_id === match.id).map((prediction) => prediction.user_id));
       const groupsWithMissing = usersByGroup.map((group) => {
         const missing = group.users.filter((user) => !predictedUserIds.has(user.id));
@@ -155,6 +168,7 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
         phaseLabel: PHASE_LABELS[match.phase],
         status: match.status,
         statusLabel: statusLabel(match.status),
+        dayLabel: matchKey === todayKey ? "Hoy" : "Ayer",
         kickoffAt: match.kickoff_at,
         homeTeam: serializeTeam(match.home_team_id ? teamsById.get(match.home_team_id) : undefined),
         awayTeam: serializeTeam(match.away_team_id ? teamsById.get(match.away_team_id) : undefined),
@@ -184,4 +198,10 @@ function dateKeyInTimezone(date: Date, timezone: string) {
     month: "2-digit",
     day: "2-digit"
   }).format(date);
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
 }

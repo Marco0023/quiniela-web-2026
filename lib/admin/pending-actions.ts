@@ -33,6 +33,12 @@ function dateKeyInTimezone(date: Date, timezone: string) {
   }).format(date);
 }
 
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
 function mapMatchFromRow(row: {
   id: string;
   phase: Match["phase"];
@@ -97,10 +103,11 @@ export async function saveAdminMatchPrediction(formData: FormData) {
   const match = mapMatchFromRow(matchRow);
   const timezone = adminTimezone?.timezone ?? "America/Bogota";
   const todayKey = dateKeyInTimezone(new Date(), timezone);
+  const yesterdayKey = dateKeyInTimezone(addDays(new Date(), -1), timezone);
   const matchKey = dateKeyInTimezone(new Date(match.kickoffAt), timezone);
 
-  if (matchKey !== todayKey) {
-    redirectWithError("Solo puedes cargar predicciones faltantes de partidos de hoy.");
+  if (matchKey !== todayKey && matchKey !== yesterdayKey) {
+    redirectWithError("Solo puedes cargar predicciones faltantes de partidos de hoy o de ayer.");
   }
 
   if (!isPredictionLocked(match.kickoffAt)) {

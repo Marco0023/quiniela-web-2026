@@ -39,7 +39,7 @@ export function AdminPendingTodaySection({
         <AdminTodayPendingPanel initialData={liveData} onDataChange={setLiveData} />
       ) : (
         <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/58">
-          No hay partidos programados para hoy en tu horario.
+          No hay partidos de hoy o ayer sin resultado guardado.
         </p>
       )}
 
@@ -49,7 +49,7 @@ export function AdminPendingTodaySection({
           <div>
             <h2 className="text-xl font-black text-ink">Cargar predicción faltante</h2>
             <p className="text-sm text-white/55">
-              Solo partidos de hoy que ya cerraron y todavía no tienen resultado guardado.
+              Solo partidos de hoy o de ayer que ya cerraron y todavía no tienen resultado guardado.
             </p>
           </div>
         </div>

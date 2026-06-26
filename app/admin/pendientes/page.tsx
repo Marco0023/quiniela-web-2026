@@ -47,8 +47,10 @@ export default async function AdminPendingPage({
           <div className="mb-4 flex items-center gap-3">
             <CalendarClock className="size-6 text-gold" />
             <div>
-              <h2 className="text-xl font-black text-ink">Partidos de hoy</h2>
-              <p className="text-sm text-white/55">Jornada calculada con tu zona horaria: {data.profile.timezoneCountry}</p>
+              <h2 className="text-xl font-black text-ink">Pendientes recientes</h2>
+              <p className="text-sm text-white/55">
+                Partidos de hoy y de ayer sin resultado guardado. Zona horaria: {data.profile.timezoneCountry}
+              </p>
             </div>
           </div>
           <AdminPendingTodaySection

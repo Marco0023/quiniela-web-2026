@@ -69,7 +69,7 @@ export function AdminTodayPendingPanel({
         </div>
       ) : (
         <p className="rounded-md bg-white/[0.04] px-3 py-3 text-sm text-white/58">
-          No hay partidos programados para hoy en tu horario.
+          No hay partidos de hoy o ayer sin resultado guardado.
         </p>
       )}
     </div>
@@ -82,6 +82,7 @@ function TodayPendingMatchCard({ match, timezone }: { match: AdminTodayPendingDa
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="gold">{match.dayLabel}</Badge>
             <Badge tone="neutral">{match.statusLabel}</Badge>
             <span className="text-xs font-bold text-white/45">{match.phaseLabel}</span>
           </div>
