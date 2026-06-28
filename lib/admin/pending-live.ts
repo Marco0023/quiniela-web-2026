@@ -119,7 +119,7 @@ export async function getAdminTodayPendingData(): Promise<AdminTodayPendingData>
   const resultIds = new Set(results.map((result) => result.match_id));
   const recentMatches = matches.filter((match) => {
     const matchKey = dateKeyInTimezone(new Date(match.kickoff_at), timezone);
-    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id);
+    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id) && match.home_team_id && match.away_team_id;
   });
   const matchIds = recentMatches.map((match) => match.id);
   const predictionsResponse =

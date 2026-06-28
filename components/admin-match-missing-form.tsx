@@ -68,10 +68,12 @@ export function AdminMatchMissingForm({
   const predictionType = selectedMatch ? getPredictionType(selectedMatch) : "group_stage";
   const parsedHome = homeScore === "" ? null : Number(homeScore);
   const parsedAway = awayScore === "" ? null : Number(awayScore);
-  const scoreIsValid = validateScoreConsistency(outcome, parsedHome, parsedAway);
+  const scoreIsValid = predictionType === "group_stage" ? validateScoreConsistency(outcome, parsedHome, parsedAway) : true;
+  const hasRequiredKnockoutScore = predictionType === "group_stage" || (parsedHome !== null && parsedAway !== null);
   const isComplete =
     Boolean(selectedMatch && effectiveTargetUserId) &&
-    (predictionType === "group_stage" ? Boolean(outcome) && scoreIsValid : Boolean(winnerTeamId));
+    Boolean(selectedMatch?.homeTeamId && selectedMatch?.awayTeamId) &&
+    (predictionType === "group_stage" ? Boolean(outcome) && scoreIsValid : Boolean(winnerTeamId) && hasRequiredKnockoutScore);
 
   function handleMatchChange(nextMatchId: string) {
     const nextMatch = matches.find((match) => match.id === nextMatchId) ?? matches[0];
@@ -188,15 +190,18 @@ export function AdminMatchMissingForm({
                   />
                 ))}
               </div>
-              {predictionType === "final" ? (
-                <ScoreFields
-                  awayLabel={awayTeam?.name ?? "Visitante"}
-                  awayScore={awayScore}
-                  homeLabel={homeTeam?.name ?? "Local"}
-                  homeScore={homeScore}
-                  setAwayScore={setAwayScore}
-                  setHomeScore={setHomeScore}
-                />
+              <ScoreFields
+                awayLabel={awayTeam?.name ?? "Visitante"}
+                awayScore={awayScore}
+                homeLabel={homeTeam?.name ?? "Local"}
+                homeScore={homeScore}
+                setAwayScore={setAwayScore}
+                setHomeScore={setHomeScore}
+              />
+              {!hasRequiredKnockoutScore ? (
+                <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
+                  En eliminatorias debes agregar marcador de 90 minutos.
+                </p>
               ) : null}
               <div className="grid grid-cols-2 gap-2">
                 <Toggle label="Habra prorroga" checked={extraTime} onChange={setExtraTime} />

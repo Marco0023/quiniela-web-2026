@@ -17,5 +17,8 @@ export function formatPredictionScore(prediction: Prediction, emptyLabel = "sin 
 }
 
 export function formatPredictionSummary(prediction: Prediction, match: Match, teams: Team[]) {
-  return `${formatPredictionSelection(prediction, match, teams)}, ${formatPredictionScore(prediction)}`;
+  const base = `${formatPredictionSelection(prediction, match, teams)}, ${formatPredictionScore(prediction)}`;
+  if (prediction.predictionType === "group_stage") return base;
+
+  return `${base}, prórroga ${prediction.predictsExtraTime ? "Sí" : "No"}, penales ${prediction.predictsPenalties ? "Sí" : "No"}`;
 }

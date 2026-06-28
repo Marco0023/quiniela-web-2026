@@ -602,7 +602,7 @@ export async function getAdminPendingPredictionsData() {
   const resultIds = new Set(results.map((result) => result.matchId));
   const todayMatches = matches.filter((match) => {
     const matchKey = dateKeyInTimezone(new Date(match.kickoffAt), profile.timezone);
-    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id);
+    return (matchKey === todayKey || matchKey === yesterdayKey) && !resultIds.has(match.id) && match.homeTeamId && match.awayTeamId;
   });
 
   return {

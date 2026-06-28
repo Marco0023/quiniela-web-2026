@@ -75,6 +75,10 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
     fail(matchId, "La predicción ya está cerrada para este partido.");
   }
 
+  if (!match.home_team_id || !match.away_team_id) {
+    fail(matchId, "Este partido todavía no tiene los dos equipos definidos.");
+  }
+
   const predictionType = getPredictionType({
     id: match.id,
     phase: match.phase,
@@ -110,6 +114,9 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
     }
     if (![match.home_team_id, match.away_team_id].includes(predictedWinnerTeamId)) {
       fail(matchId, "Selección inválida para este partido.");
+    }
+    if (predictedHomeScore === null || predictedAwayScore === null) {
+      fail(matchId, "En eliminatorias debes agregar marcador de 90 minutos.");
     }
   }
 
@@ -203,6 +210,100 @@ export async function saveQuickGroupPrediction(formData: FormData): Promise<Quic
       predicted_away_score: predictedAwayScore,
       predicts_extra_time: null,
       predicts_penalties: null,
+      updated_at: new Date().toISOString()
+    },
+    {
+      onConflict: "match_id,user_id"
+    }
+  );
+
+  if (error) return quickFail("No se pudo guardar la predicción.");
+
+  revalidatePath("/dashboard");
+  revalidatePath("/partidos");
+  revalidatePath("/historial");
+  revalidatePath("/ranking");
+  revalidatePath("/admin/pendientes");
+
+  return { ok: true };
+}
+
+export async function saveQuickPrediction(formData: FormData): Promise<QuickPredictionResult> {
+  const matchId = value(formData, "matchId");
+  if (!matchId) return quickFail("Partido no encontrado.");
+
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return quickFail("Tu sesión expiró. Inicia sesión otra vez.");
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id,group_id,role")
+    .eq("id", authData.user.id)
+    .single();
+
+  if (!profile?.group_id) return quickFail("Tu usuario no tiene grupo asignado.");
+
+  const { data: match } = await admin.from("matches").select("*").eq("id", matchId).single<{
+    id: string;
+    phase: Match["phase"];
+    kickoff_at: string;
+    home_team_id: string | null;
+    away_team_id: string | null;
+  }>();
+
+  if (!match) return quickFail("Partido no encontrado.");
+  if (isPredictionLocked(match.kickoff_at)) return quickFail("La predicción ya está cerrada para este partido.");
+  if (!match.home_team_id || !match.away_team_id) return quickFail("Este partido todavía no tiene los dos equipos definidos.");
+
+  const predictionType = getPredictionType({
+    id: match.id,
+    phase: match.phase,
+    kickoffAt: match.kickoff_at,
+    homeTeamId: match.home_team_id,
+    awayTeamId: match.away_team_id,
+    matchNumber: 0,
+    status: "scheduled"
+  });
+
+  const predictedOutcomeRaw = value(formData, "predictedOutcome");
+  const predictedOutcome = ["home", "draw", "away"].includes(predictedOutcomeRaw)
+    ? (predictedOutcomeRaw as Outcome)
+    : null;
+  const predictedWinnerTeamId = value(formData, "predictedWinnerTeamId") || null;
+  const predictedHomeScore = optionalNumber(formData, "predictedHomeScore");
+  const predictedAwayScore = optionalNumber(formData, "predictedAwayScore");
+  const predictsExtraTime = formData.get("predictsExtraTime") === "true";
+  const predictsPenalties = formData.get("predictsPenalties") === "true";
+
+  if (predictionType === "group_stage") {
+    if (!predictedOutcome) return quickFail("Selecciona ganador o empate.");
+    if (!validateScoreConsistency(predictedOutcome, predictedHomeScore, predictedAwayScore)) {
+      return quickFail("El marcador no coincide con tu selección principal.");
+    }
+  } else {
+    if (!predictedWinnerTeamId) return quickFail("Selecciona quién gana o avanza.");
+    if (![match.home_team_id, match.away_team_id].includes(predictedWinnerTeamId)) {
+      return quickFail("Selección inválida para este partido.");
+    }
+    if (predictedHomeScore === null || predictedAwayScore === null) {
+      return quickFail("En eliminatorias debes agregar marcador de 90 minutos.");
+    }
+  }
+
+  const { error } = await admin.from("match_predictions").upsert(
+    {
+      match_id: matchId,
+      user_id: authData.user.id,
+      group_id: profile.group_id,
+      prediction_type: predictionType,
+      predicted_outcome: predictionType === "group_stage" ? predictedOutcome : null,
+      predicted_winner_team_id: predictionType === "group_stage" ? null : predictedWinnerTeamId,
+      predicted_home_score: predictedHomeScore,
+      predicted_away_score: predictedAwayScore,
+      predicts_extra_time: predictionType === "group_stage" ? null : predictsExtraTime,
+      predicts_penalties: predictionType === "group_stage" ? null : predictsPenalties,
       updated_at: new Date().toISOString()
     },
     {

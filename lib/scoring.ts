@@ -33,6 +33,31 @@ export function validateScoreConsistency(
   return homeScore === awayScore;
 }
 
+function knockoutWinnerPoints(phase: Match["phase"]) {
+  if (phase === "round_of_32") return 5;
+  if (phase === "round_of_16") return 6;
+  if (phase === "quarter_finals") return 7;
+  if (phase === "semi_finals" || phase === "third_place" || phase === "final") return 8;
+  return 0;
+}
+
+function applyNinetyMinuteScorePoints(breakdown: ScoreBreakdown, result: MatchResult, prediction: Prediction, exactPoints: number, diffPoints: number) {
+  const hasPredictedScore = prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null;
+  const hasResultScore = result.homeScore90 !== null && result.awayScore90 !== null;
+  if (!hasPredictedScore || !hasResultScore) return;
+
+  const hasExactScore = prediction.predictedHomeScore === result.homeScore90 && prediction.predictedAwayScore === result.awayScore90;
+  if (hasExactScore) {
+    breakdown.exactScorePoints = exactPoints;
+  }
+
+  const predictedDiff = Math.abs(prediction.predictedHomeScore! - prediction.predictedAwayScore!);
+  const actualDiff = Math.abs(result.homeScore90! - result.awayScore90!);
+  if (predictedDiff === actualDiff) {
+    breakdown.goalDifferencePoints = diffPoints;
+  }
+}
+
 export function scorePrediction({
   match,
   result,
@@ -81,51 +106,28 @@ export function scorePrediction({
 
   if (match.phase !== "group_stage" && match.phase !== "final") {
     if (prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId) {
-      breakdown.winnerPoints = 3;
+      breakdown.winnerPoints = knockoutWinnerPoints(match.phase);
     }
+    applyNinetyMinuteScorePoints(breakdown, result, prediction, 3, 2);
     if (prediction.predictsExtraTime === result.wentExtraTime) {
-      breakdown.extraTimePoints = 2;
+      breakdown.extraTimePoints = 3;
     }
     if (prediction.predictsPenalties === result.wentPenalties) {
-      breakdown.penaltiesPoints = 2;
+      breakdown.penaltiesPoints = 3;
     }
   }
 
   if (match.phase === "final") {
     if (prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId) {
-      breakdown.winnerPoints = 3;
+      breakdown.winnerPoints = knockoutWinnerPoints(match.phase);
     }
-
-    const hasExactScore =
-      prediction.predictedHomeScore !== null &&
-      prediction.predictedAwayScore !== null &&
-      prediction.predictedHomeScore === result.homeScore90 &&
-      prediction.predictedAwayScore === result.awayScore90;
-
-    if (hasExactScore) {
-      breakdown.exactScorePoints = 2;
-    }
-
-    const actualOutcome90 = getActualOutcome(result.homeScore90, result.awayScore90);
-    if (
-      actualOutcome90 !== "draw" &&
-      prediction.predictedHomeScore !== null &&
-      prediction.predictedAwayScore !== null &&
-      result.homeScore90 !== null &&
-      result.awayScore90 !== null
-    ) {
-      const predictedDiff = Math.abs(prediction.predictedHomeScore - prediction.predictedAwayScore);
-      const actualDiff = Math.abs(result.homeScore90 - result.awayScore90);
-      if (predictedDiff === actualDiff) {
-        breakdown.goalDifferencePoints = 1;
-      }
-    }
+    applyNinetyMinuteScorePoints(breakdown, result, prediction, 3, 2);
 
     if (prediction.predictsExtraTime === result.wentExtraTime) {
-      breakdown.extraTimePoints = 2;
+      breakdown.extraTimePoints = 3;
     }
     if (prediction.predictsPenalties === result.wentPenalties) {
-      breakdown.penaltiesPoints = 2;
+      breakdown.penaltiesPoints = 3;
     }
 
     if (championPrediction?.teamId && worldChampionTeamId && championPrediction.teamId === worldChampionTeamId) {

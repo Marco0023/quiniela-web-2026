@@ -2,7 +2,6 @@ import Image from "next/image";
 import { Trophy, UserRoundCheck } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { BadgeChip } from "@/components/badge-chip";
-import { DashboardWelcomePopup } from "@/components/dashboard-welcome-popup";
 import { MatchCard } from "@/components/match-card";
 import { RankingTable } from "@/components/ranking-table";
 import { TodayMatches } from "@/components/today-matches";
@@ -15,7 +14,11 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
   const championTeam = data.teams.find((team) => team.id === data.champion?.teamId);
   const pendingMatches = data.matches.filter(
-    (match) => !isPredictionLocked(match.kickoffAt) && !data.predictions.some((prediction) => prediction.matchId === match.id)
+    (match) =>
+      match.homeTeamId &&
+      match.awayTeamId &&
+      !isPredictionLocked(match.kickoffAt) &&
+      !data.predictions.some((prediction) => prediction.matchId === match.id)
   );
   const groupName = data.group?.name ?? "tu grupo";
   const currentRanking = data.ranking.find((row) => row.user.id === data.profile.id);
@@ -32,7 +35,6 @@ export default async function DashboardPage() {
 
   return (
     <AppShell showAdmin={data.profile.role === "admin"}>
-      <DashboardWelcomePopup groupName={groupName} />
       <div className="grid gap-5">
         <section className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <Card className="overflow-hidden">

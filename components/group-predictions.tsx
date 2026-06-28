@@ -75,10 +75,10 @@ function formatPrediction(prediction: Prediction, match: Match, teams: Team[]) {
 
   const winner = teams.find((team) => team.id === prediction.predictedWinnerTeamId);
   const score =
-    match.phase === "final" && prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null
+    prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null
       ? `, 90 min ${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
       : "";
-  const extra = prediction.predictsExtraTime ? ", prórroga sí" : ", prórroga no";
-  const penalties = prediction.predictsPenalties ? ", penales sí" : ", penales no";
+  const extra = `, prórroga ${prediction.predictsExtraTime ? "Sí" : "No"}`;
+  const penalties = `, penales ${prediction.predictsPenalties ? "Sí" : "No"}`;
   return `${match.phase === "final" ? "Campeón" : "Avanza"} ${winner?.name ?? "por definir"}${score}${extra}${penalties}`;
 }

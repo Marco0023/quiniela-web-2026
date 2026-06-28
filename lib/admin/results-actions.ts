@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdminProfile } from "@/lib/admin/auth";
 import { recordBadgeEventsForMatch } from "@/lib/badge-events";
 import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
+import { propagateKnockoutResult } from "@/lib/knockout-bracket";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/pagination";
@@ -89,12 +90,15 @@ export async function saveMatchResult(formData: FormData) {
   const wentExtraTime = bool(formData, "wentExtraTime");
   const wentPenalties = bool(formData, "wentPenalties");
 
-  if ((matchData.phase === "group_stage" || matchData.phase === "final") && (homeScore90 === null || awayScore90 === null)) {
+  if (homeScore90 === null || awayScore90 === null) {
     redirectWithError("Ingresa marcador de 90 minutos.");
   }
 
   if (matchData.phase !== "group_stage" && !winnerTeamId) {
-    redirect(`/admin/resultados?error=${encodeURIComponent("Selecciona ganador o quién avanza.")}`);
+    redirectWithError("Selecciona ganador o quién avanza.");
+  }
+  if (winnerTeamId && ![matchData.home_team_id, matchData.away_team_id].includes(winnerTeamId)) {
+    redirectWithError("El ganador no pertenece a este partido.");
   }
 
   const computedWinner =
@@ -125,6 +129,15 @@ export async function saveMatchResult(formData: FormData) {
   }
 
   await admin.from("matches").update({ status: "finished", updated_at: new Date().toISOString() }).eq("id", matchId);
+  if (matchData.phase !== "group_stage") {
+    await propagateKnockoutResult({
+      admin,
+      awayTeamId: matchData.away_team_id,
+      homeTeamId: matchData.home_team_id,
+      matchNumber: matchData.match_number,
+      winnerTeamId: computedWinner
+    });
+  }
 
   const { data: predictionRows } = await admin.from("match_predictions").select("*").eq("match_id", matchId);
   const { data: championRows } = await admin.from("champion_predictions").select("user_id,team_id,created_at");
@@ -209,6 +222,7 @@ export async function saveMatchResult(formData: FormData) {
   revalidatePath("/ranking");
   revalidatePath("/historial");
   revalidatePath("/inicio-admin");
+  revalidatePath("/partidos");
   redirect(`${redirectPath}?saved=1`);
 }
 

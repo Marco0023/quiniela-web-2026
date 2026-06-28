@@ -1,5 +1,6 @@
 import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
 import { recordBadgeEventsForMatch } from "@/lib/badge-events";
+import { propagateKnockoutResult } from "@/lib/knockout-bracket";
 import { scorePrediction } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/pagination";
@@ -192,6 +193,15 @@ async function upsertResultsAndScore(admin: ReturnType<typeof createAdminClient>
 
     if (result.status === "finished") {
       await admin.from("matches").update({ status: "finished", updated_at: new Date().toISOString() }).eq("id", matchRow.id);
+      if (matchRow.phase !== "group_stage") {
+        await propagateKnockoutResult({
+          admin,
+          awayTeamId: matchRow.away_team_id,
+          homeTeamId: matchRow.home_team_id,
+          matchNumber: matchRow.match_number,
+          winnerTeamId
+        });
+      }
       predictionsScored += await scoreMatchPredictions(admin, matchRow, {
         matchId: matchRow.id,
         homeScore90: result.homeScore90,

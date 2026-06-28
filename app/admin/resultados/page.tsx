@@ -43,6 +43,7 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
           const homeTeam = data.teams.find((team) => team.id === match.homeTeamId);
           const awayTeam = data.teams.find((team) => team.id === match.awayTeamId);
           const result = data.resultsByMatchId.get(match.id);
+          const needsWinner = match.phase !== "group_stage";
 
           return (
           <Card key={match.id} className="grid gap-4">
@@ -86,7 +87,7 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
               <label className="grid gap-1 text-xs font-bold text-white/60 md:col-span-2">
                 Ganador / avanza
                 <select className={inputClass} defaultValue={result?.winnerTeamId ?? ""} name="winnerTeamId">
-                  <option value="">Calcular si aplica</option>
+                  <option value="">{needsWinner ? "Selecciona ganador / avanza" : "Calcular si aplica"}</option>
                   {[homeTeam, awayTeam].filter(Boolean).map((team, index) => (
                     <option key={`${match.id}-${team!.id}-${index}`} value={team!.id}>
                       {team!.name}

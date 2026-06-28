@@ -113,6 +113,9 @@ export async function saveAdminMatchPrediction(formData: FormData) {
   if (!isPredictionLocked(match.kickoffAt)) {
     redirectWithError("Este partido todavia esta abierto para que el usuario prediga.");
   }
+  if (!match.homeTeamId || !match.awayTeamId) {
+    redirectWithError("Este partido todavia no tiene los dos equipos definidos.");
+  }
 
   const predictionType = getPredictionType(match);
   const predictedOutcomeRaw = text(formData, "predictedOutcome");
@@ -138,6 +141,9 @@ export async function saveAdminMatchPrediction(formData: FormData) {
     }
     if (![match.homeTeamId, match.awayTeamId].includes(predictedWinnerTeamId)) {
       redirectWithError("Seleccion invalida para este partido.");
+    }
+    if (predictedHomeScore === null || predictedAwayScore === null) {
+      redirectWithError("En eliminatorias debes agregar marcador de 90 minutos.");
     }
   }
 

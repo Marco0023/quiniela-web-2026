@@ -589,9 +589,7 @@ function isCorrectMatch(match: Match, result: MatchResult, prediction: Predictio
   return Boolean(prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId);
 }
 
-function isExactScore(match: Match, result: MatchResult, prediction: Prediction) {
-  if (match.phase !== "group_stage" && match.phase !== "final") return false;
-
+function isExactScore(_match: Match, result: MatchResult, prediction: Prediction) {
   return (
     prediction.predictedHomeScore !== null &&
     prediction.predictedAwayScore !== null &&
@@ -782,14 +780,13 @@ function missedLatestFinishedMatch(userId: string, matches: Match[], results: Ma
 
 function baseMatchPoints(match: Match, result: MatchResult, prediction: Prediction) {
   let points = 0;
-  if (isCorrectMatch(match, result, prediction)) points += 3;
-  if (isExactScore(match, result, prediction)) points += 2;
-  if (hasGoalDifferenceHit(match, result, prediction)) points += 1;
+  if (isCorrectMatch(match, result, prediction)) points += match.phase === "group_stage" ? 3 : knockoutWinnerPoints(match.phase);
+  if (isExactScore(match, result, prediction)) points += match.phase === "group_stage" ? 2 : 3;
+  if (hasGoalDifferenceHit(match, result, prediction)) points += match.phase === "group_stage" ? 1 : 2;
   return points;
 }
 
 function hasGoalDifferenceHit(match: Match, result: MatchResult, prediction: Prediction) {
-  if (match.phase !== "group_stage" && match.phase !== "final") return false;
   if (
     prediction.predictedHomeScore === null ||
     prediction.predictedAwayScore === null ||
@@ -804,6 +801,14 @@ function hasGoalDifferenceHit(match: Match, result: MatchResult, prediction: Pre
   const predictedDiff = Math.abs(prediction.predictedHomeScore - prediction.predictedAwayScore);
   const actualDiff = Math.abs(result.homeScore90 - result.awayScore90);
   return predictedDiff === actualDiff;
+}
+
+function knockoutWinnerPoints(phase: Match["phase"]) {
+  if (phase === "round_of_32") return 5;
+  if (phase === "round_of_16") return 6;
+  if (phase === "quarter_finals") return 7;
+  if (phase === "semi_finals" || phase === "third_place" || phase === "final") return 8;
+  return 0;
 }
 
 function hasUnderdogPick(userId: string, matches: Match[], results: MatchResult[], predictions: Prediction[]) {

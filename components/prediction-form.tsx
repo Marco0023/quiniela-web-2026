@@ -13,6 +13,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
   const router = useRouter();
   const predictionType = getPredictionType(match);
   const locked = isPredictionLocked(match.kickoffAt);
+  const hasTeams = Boolean(match.homeTeamId && match.awayTeamId);
   const [saveState, formAction, isPending] = useActionState(savePrediction, null);
   const [outcome, setOutcome] = useState<Outcome>(prediction?.predictedOutcome ?? "home");
   const [homeScore, setHomeScore] = useState(prediction?.predictedHomeScore?.toString() ?? "");
@@ -26,9 +27,10 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
   const parsedHome = homeScore === "" ? null : Number(homeScore);
   const parsedAway = awayScore === "" ? null : Number(awayScore);
   const scoreIsValid = useMemo(
-    () => validateScoreConsistency(outcome, parsedHome, parsedAway),
-    [outcome, parsedAway, parsedHome]
+    () => (predictionType === "group_stage" ? validateScoreConsistency(outcome, parsedHome, parsedAway) : true),
+    [outcome, parsedAway, parsedHome, predictionType]
   );
+  const hasRequiredKnockoutScore = predictionType === "group_stage" || (parsedHome !== null && parsedAway !== null);
   const isSavedRedirecting = saveState?.status === "saved";
 
   useEffect(() => {
@@ -58,6 +60,12 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
       <input name="predictsExtraTime" type="hidden" value={String(extraTime)} />
       <input name="predictsPenalties" type="hidden" value={String(penalties)} />
 
+      {!hasTeams ? (
+        <p className="rounded-md border border-gold/25 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
+          Este partido todavía espera equipos definidos. Cuando la llave se complete podrás guardar tu predicción.
+        </p>
+      ) : null}
+
       {predictionType === "group_stage" ? (
         <>
           <div>
@@ -69,14 +77,14 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
           <div className="grid gap-2 sm:grid-cols-3">
             <OutcomeButton
               active={outcome === "home"}
-              disabled={locked}
+              disabled={locked || !hasTeams}
               label={homeTeam?.name ?? "Local"}
               team={homeTeam}
               onClick={() => setOutcome("home")}
             />
             <button
               type="button"
-              disabled={locked}
+              disabled={locked || !hasTeams}
               onClick={() => setOutcome("draw")}
               className={`min-h-14 rounded-md border px-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 outcome === "draw" ? "border-gold bg-gold text-pitch" : "border-white/10 bg-white/5 text-white/72"
@@ -86,7 +94,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
             </button>
             <OutcomeButton
               active={outcome === "away"}
-              disabled={locked}
+              disabled={locked || !hasTeams}
               label={awayTeam?.name ?? "Visitante"}
               team={awayTeam}
               onClick={() => setOutcome("away")}
@@ -99,7 +107,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
             awayScore={awayScore}
             setHomeScore={setHomeScore}
             setAwayScore={setAwayScore}
-            disabled={locked}
+            disabled={locked || !hasTeams}
           />
           <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
             El marcador no es obligatorio. Pero si quieres medir tu poder mundialista, puedes sumar puntos extra por acertar
@@ -116,9 +124,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
       {predictionType === "knockout" || predictionType === "final" ? (
         <>
           <div>
-            <h3 className="font-black text-white">
-              {predictionType === "final" ? "¿Quién gana la final?" : "¿Quién avanza?"}
-            </h3>
+            <h3 className="font-black text-white">{predictionType === "final" ? "¿Quién gana la final?" : "¿Quién avanza?"}</h3>
             <p className="mt-1 text-sm leading-6 text-white/58">
               En eliminación cuenta quién sigue con vida, incluyendo prórroga y penales.
             </p>
@@ -128,40 +134,42 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
               <WinnerButton
                 key={team!.id}
                 active={winnerTeamId === team!.id}
-                disabled={locked}
+                disabled={locked || !hasTeams}
                 team={team!}
                 onClick={() => setWinnerTeamId(team!.id)}
               />
             ))}
           </div>
 
-          {predictionType === "final" ? (
-            <>
-              <ScoreFields
-                homeLabel={homeTeam?.name ?? "Local"}
-                awayLabel={awayTeam?.name ?? "Visitante"}
-                homeScore={homeScore}
-                awayScore={awayScore}
-                setHomeScore={setHomeScore}
-                setAwayScore={setAwayScore}
-                disabled={locked}
-              />
-              <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
-                El marcador es opcional y corresponde a los 90 minutos. Si te sale la visión, puedes sumar puntos extra.
-              </p>
-            </>
+          <ScoreFields
+            homeLabel={homeTeam?.name ?? "Local"}
+            awayLabel={awayTeam?.name ?? "Visitante"}
+            homeScore={homeScore}
+            awayScore={awayScore}
+            setHomeScore={setHomeScore}
+            setAwayScore={setAwayScore}
+            disabled={locked || !hasTeams}
+          />
+          <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
+            En eliminatorias el marcador de 90 minutos es obligatorio. Puede ser empate si crees que tu equipo avanza después
+            en prórroga o penales.
+          </p>
+          {!hasRequiredKnockoutScore ? (
+            <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
+              Agrega el marcador de 90 minutos para guardar esta predicción.
+            </p>
           ) : null}
 
           <div className="grid grid-cols-2 gap-2">
-            <Toggle label="Habrá prórroga" checked={extraTime} disabled={locked} onChange={setExtraTime} />
-            <Toggle label="Habrá penales" checked={penalties} disabled={locked} onChange={setPenalties} />
+            <Toggle label="Habrá prórroga" checked={extraTime} disabled={locked || !hasTeams} onChange={setExtraTime} />
+            <Toggle label="Habrá penales" checked={penalties} disabled={locked || !hasTeams} onChange={setPenalties} />
           </div>
         </>
       ) : null}
 
       <button
         type="submit"
-        disabled={!scoreIsValid || locked || isPending || isSavedRedirecting}
+        disabled={!scoreIsValid || !hasRequiredKnockoutScore || !hasTeams || locked || isPending || isSavedRedirecting}
         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-gold px-4 font-black text-pitch transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Save className="size-4" />

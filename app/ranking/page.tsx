@@ -15,6 +15,7 @@ export default async function RankingPage() {
         results={data.results}
         predictions={data.groupPredictions}
         champions={data.groupChampionPredictions}
+        classificationPredictions={data.groupClassificationPredictions}
         teams={data.teams}
         currentUserId={data.profile.id}
       />

@@ -80,6 +80,7 @@ export function MatchesTabs({
           teams={teams}
           timezone={timezone}
           title="Eliminatorias"
+          quickTitle="Predecir eliminatorias"
         />
       ) : null}
       {activeTab === "finals" ? (
@@ -92,6 +93,7 @@ export function MatchesTabs({
           teams={teams}
           timezone={timezone}
           title="Fase final"
+          quickTitle="Predecir fase final"
         />
       ) : null}
     </div>
@@ -145,7 +147,8 @@ function MatchesByPhasePanel({
   results,
   teams,
   timezone,
-  title
+  title,
+  quickTitle
 }: {
   description: string;
   matches: Match[];
@@ -155,16 +158,23 @@ function MatchesByPhasePanel({
   teams: Team[];
   timezone: string;
   title: string;
+  quickTitle: string;
 }) {
+  const panelMatches = matches.filter((match) => phases.includes(match.phase));
+  const openMatches = panelMatches.filter((match) => match.status !== "finished");
+
   return (
     <section className="grid gap-8">
-      <div>
-        <h2 className="text-2xl font-black text-gold md:text-3xl">{title}</h2>
-        <p className="mt-1 text-sm text-white/60">{description}</p>
+      <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <h2 className="text-2xl font-black text-gold md:text-3xl">{title}</h2>
+          <p className="mt-1 text-sm text-white/60">{description}</p>
+        </div>
+        <QuickPredictionWizard matches={openMatches} predictions={predictions} teams={teams} title={quickTitle} />
       </div>
 
       {phases.map((phase) => {
-        const phaseMatches = matches.filter((match) => match.phase === phase);
+        const phaseMatches = panelMatches.filter((match) => match.phase === phase);
         return (
           <div key={phase} className="grid gap-3">
             <h3 className="text-xl font-black text-ink">{PHASE_LABELS[phase]}</h3>

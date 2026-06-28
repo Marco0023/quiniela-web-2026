@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card } from "@/components/ui";
-import type { ChampionPrediction, Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
+import type { ChampionPrediction, GroupClassificationPrediction, Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
 type RankingRow = {
   user: Profile;
@@ -14,6 +14,7 @@ export function RankingDetailTable({
   results,
   predictions,
   champions,
+  classificationPredictions,
   teams,
   currentUserId
 }: {
@@ -22,13 +23,14 @@ export function RankingDetailTable({
   results: MatchResult[];
   predictions: Prediction[];
   champions: ChampionPrediction[];
+  classificationPredictions: GroupClassificationPrediction[];
   teams: Team[];
   currentUserId?: string;
 }) {
   return (
     <Card className="p-0">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[780px] text-left text-sm">
+        <table className="w-full min-w-[920px] text-left text-sm">
           <thead className="border-b border-white/10 text-xs uppercase tracking-[0.16em] text-white/45">
             <tr>
               <th className="px-4 py-3">#</th>
@@ -36,6 +38,7 @@ export function RankingDetailTable({
               <th className="px-4 py-3">Equipo</th>
               <th className="px-4 py-3 text-center">Partidos acertados</th>
               <th className="px-4 py-3 text-center">Resultados acertados</th>
+              <th className="px-4 py-3 text-center">Clasificación grupos</th>
               <th className="px-4 py-3 text-right">Total puntos</th>
             </tr>
           </thead>
@@ -44,6 +47,9 @@ export function RankingDetailTable({
               const stats = getUserStats(row.user.id, matches, results, predictions);
               const champion = champions.find((item) => item.userId === row.user.id);
               const championTeam = teams.find((team) => team.id === champion?.teamId);
+              const classificationPoints = classificationPredictions
+                .filter((prediction) => prediction.userId === row.user.id)
+                .reduce((total, prediction) => total + prediction.pointsAwarded, 0);
 
               return (
                 <tr key={row.user.id} className={row.user.id === currentUserId ? "bg-gold/5" : undefined}>
@@ -74,6 +80,7 @@ export function RankingDetailTable({
                   </td>
                   <td className="px-4 py-4 text-center font-black text-white">{stats.correctMatches}</td>
                   <td className="px-4 py-4 text-center font-black text-white">{stats.exactScores}</td>
+                  <td className="px-4 py-4 text-center font-black text-gold">{classificationPoints} pts</td>
                   <td className="px-4 py-4 text-right">
                     <span className="rounded bg-white/10 px-3 py-1 text-sm font-black text-ink">{row.points} pts</span>
                   </td>
@@ -118,9 +125,7 @@ function isCorrectMatch(match: Match, result: MatchResult, prediction: Predictio
   return Boolean(prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId);
 }
 
-function isExactScore(match: Match, result: MatchResult, prediction: Prediction) {
-  if (match.phase !== "group_stage" && match.phase !== "final") return false;
-
+function isExactScore(_match: Match, result: MatchResult, prediction: Prediction) {
   return (
     prediction.predictedHomeScore !== null &&
     prediction.predictedAwayScore !== null &&

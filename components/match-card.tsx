@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, LockKeyhole } from "lucide-react";
+import { Badge, Card } from "@/components/ui";
 import { formatKickoff, statusLabel } from "@/lib/format";
 import { formatPredictionSummary } from "@/lib/predictions/format";
 import { isPredictionLocked } from "@/lib/scoring";
 import type { Match, MatchResult, Prediction, Team } from "@/lib/types";
-import { Badge, Card } from "@/components/ui";
 
 export function MatchCard({
   match,
@@ -23,8 +23,9 @@ export function MatchCard({
   const homeTeam = teams.find((team) => team.id === match.homeTeamId);
   const awayTeam = teams.find((team) => team.id === match.awayTeamId);
   const locked = isPredictionLocked(match.kickoffAt);
+  const hasTeams = Boolean(match.homeTeamId && match.awayTeamId);
   const showScore = match.status === "finished" && result;
-  const actionLabel = locked && !prediction ? "Cerrado" : prediction ? "Ver" : "Predecir";
+  const actionLabel = !hasTeams ? "Esperando" : locked && !prediction ? "Cerrado" : prediction ? "Ver" : "Predecir";
   const isGroupPredictionSaved = match.phase === "group_stage" && Boolean(prediction);
 
   return (
@@ -66,16 +67,22 @@ export function MatchCard({
           </div>
         ) : (
           <p className="min-w-0 text-sm text-white/62">
-            {prediction ? "Predicción guardada" : locked ? "Cerrado sin predicción" : "Pendiente por predecir"}
+            {!hasTeams ? "Esperando equipos" : prediction ? "Predicción guardada" : locked ? "Cerrado sin predicción" : "Pendiente por predecir"}
           </p>
         )}
-        <Link
-          href={`/partidos/${match.id}`}
-          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-gold px-3 py-2 text-sm font-black text-pitch transition hover:bg-white"
-        >
-          {locked ? <LockKeyhole className="size-4" /> : null}
-          {actionLabel}
-        </Link>
+        {hasTeams ? (
+          <Link
+            href={`/partidos/${match.id}`}
+            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-gold px-3 py-2 text-sm font-black text-pitch transition hover:bg-white"
+          >
+            {locked ? <LockKeyhole className="size-4" /> : null}
+            {actionLabel}
+          </Link>
+        ) : (
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-md border border-white/10 bg-white/8 px-3 py-2 text-sm font-black text-white/45">
+            {actionLabel}
+          </span>
+        )}
       </div>
     </Card>
   );
