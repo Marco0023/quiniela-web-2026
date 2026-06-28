@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdminProfile } from "@/lib/admin/auth";
 import { resolveClassificationGroups } from "@/lib/classification/groups";
 import { scoreClassificationPrediction } from "@/lib/classification/rules";
-import { getPredictionType, isPredictionLocked, validateScoreConsistency } from "@/lib/scoring";
+import { getPredictionType, isPredictionLocked, validateKnockoutGlobalScore, validateScoreConsistency } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Match, MatchResult, Outcome, Team } from "@/lib/types";
 
@@ -143,7 +143,10 @@ export async function saveAdminMatchPrediction(formData: FormData) {
       redirectWithError("Seleccion invalida para este partido.");
     }
     if (predictedHomeScore === null || predictedAwayScore === null) {
-      redirectWithError("En eliminatorias debes agregar marcador de 90 minutos.");
+      redirectWithError("En eliminatorias debes agregar el marcador global del partido.");
+    }
+    if (!validateKnockoutGlobalScore(predictedWinnerTeamId, predictedHomeScore, predictedAwayScore, match.homeTeamId, match.awayTeamId)) {
+      redirectWithError("El marcador global debe coincidir con el equipo que avanza y no puede ser empate.");
     }
   }
 

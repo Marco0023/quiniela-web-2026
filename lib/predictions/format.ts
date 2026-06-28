@@ -17,7 +17,11 @@ export function formatPredictionScore(prediction: Prediction, emptyLabel = "sin 
 }
 
 export function formatPredictionSummary(prediction: Prediction, match: Match, teams: Team[]) {
-  const base = `${formatPredictionSelection(prediction, match, teams)}, ${formatPredictionScore(prediction)}`;
+  const score = formatPredictionScore(prediction);
+  const base =
+    prediction.predictionType === "group_stage"
+      ? `${formatPredictionSelection(prediction, match, teams)}, ${score}`
+      : `${formatPredictionSelection(prediction, match, teams)}, global ${score}`;
   if (prediction.predictionType === "group_stage") return base;
 
   return `${base}, prórroga ${prediction.predictsExtraTime ? "Sí" : "No"}, penales ${prediction.predictsPenalties ? "Sí" : "No"}`;

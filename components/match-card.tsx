@@ -4,7 +4,7 @@ import { Clock, LockKeyhole } from "lucide-react";
 import { Badge, Card } from "@/components/ui";
 import { formatKickoff, statusLabel } from "@/lib/format";
 import { formatPredictionSummary } from "@/lib/predictions/format";
-import { isPredictionLocked } from "@/lib/scoring";
+import { getScoringScore, isPredictionLocked } from "@/lib/scoring";
 import type { Match, MatchResult, Prediction, Team } from "@/lib/types";
 
 export function MatchCard({
@@ -25,6 +25,8 @@ export function MatchCard({
   const locked = isPredictionLocked(match.kickoffAt);
   const hasTeams = Boolean(match.homeTeamId && match.awayTeamId);
   const showScore = match.status === "finished" && result;
+  const displayScore = result ? getScoringScore(match, result) : null;
+  const scoreLabel = match.phase === "group_stage" ? "90 min" : "Global";
   const actionLabel = !hasTeams ? "Esperando" : locked && !prediction ? "Cerrado" : prediction ? "Ver" : "Predecir";
   const isPredictionSaved = Boolean(prediction);
 
@@ -49,11 +51,11 @@ export function MatchCard({
         {showScore ? (
           <div className="grid place-items-center">
             <div className="flex min-w-20 items-center justify-center gap-2 rounded-md bg-pitch/60 px-2 py-2 text-xl font-black text-white sm:min-w-24 sm:px-3 sm:text-2xl">
-              <span>{result.homeScore90 ?? "-"}</span>
+              <span>{displayScore?.homeScore ?? "-"}</span>
               <span className="text-sm text-white/35">-</span>
-              <span>{result.awayScore90 ?? "-"}</span>
+              <span>{displayScore?.awayScore ?? "-"}</span>
             </div>
-            <span className="mt-1 text-[11px] font-bold text-white/45">90 min</span>
+            <span className="mt-1 text-[11px] font-bold text-white/45">{scoreLabel}</span>
           </div>
         ) : (
           <span className="rounded bg-white/10 px-2 py-1 text-xs font-black text-white/60">VS</span>

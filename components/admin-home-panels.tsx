@@ -126,7 +126,7 @@ export function AdminPredictionsCarousel({
                         <tr>
                           <th className="px-3 py-2">Usuario</th>
                           <th className="px-3 py-2">Selección</th>
-                          <th className="px-3 py-2">Marcador</th>
+                          <th className="px-3 py-2">{match.phase === "group_stage" ? "Marcador" : "Marcador global"}</th>
                           <th className="px-3 py-2 text-right">Puntos</th>
                         </tr>
                       </thead>

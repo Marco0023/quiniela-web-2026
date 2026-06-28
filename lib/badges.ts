@@ -1,3 +1,4 @@
+import { getScoringScore } from "@/lib/scoring";
 import type { ChampionPrediction, Match, MatchResult, Prediction, RankingSnapshot } from "@/lib/types";
 
 export type BadgeId =
@@ -583,18 +584,20 @@ function matchTime(matches: Match[], matchId: string) {
 
 function isCorrectMatch(match: Match, result: MatchResult, prediction: Prediction) {
   if (match.phase === "group_stage") {
-    return prediction.predictedOutcome === getActualOutcome(result.homeScore90, result.awayScore90);
+    const { homeScore, awayScore } = getScoringScore(match, result);
+    return prediction.predictedOutcome === getActualOutcome(homeScore, awayScore);
   }
 
   return Boolean(prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId);
 }
 
-function isExactScore(_match: Match, result: MatchResult, prediction: Prediction) {
+function isExactScore(match: Match, result: MatchResult, prediction: Prediction) {
+  const { homeScore, awayScore } = getScoringScore(match, result);
   return (
     prediction.predictedHomeScore !== null &&
     prediction.predictedAwayScore !== null &&
-    prediction.predictedHomeScore === result.homeScore90 &&
-    prediction.predictedAwayScore === result.awayScore90
+    prediction.predictedHomeScore === homeScore &&
+    prediction.predictedAwayScore === awayScore
   );
 }
 
@@ -787,19 +790,20 @@ function baseMatchPoints(match: Match, result: MatchResult, prediction: Predicti
 }
 
 function hasGoalDifferenceHit(match: Match, result: MatchResult, prediction: Prediction) {
+  const { homeScore, awayScore } = getScoringScore(match, result);
   if (
     prediction.predictedHomeScore === null ||
     prediction.predictedAwayScore === null ||
-    result.homeScore90 === null ||
-    result.awayScore90 === null
+    homeScore === null ||
+    awayScore === null
   ) {
     return false;
   }
 
-  if (result.homeScore90 === result.awayScore90) return false;
+  if (homeScore === awayScore) return false;
 
   const predictedDiff = Math.abs(prediction.predictedHomeScore - prediction.predictedAwayScore);
-  const actualDiff = Math.abs(result.homeScore90 - result.awayScore90);
+  const actualDiff = Math.abs(homeScore - awayScore);
   return predictedDiff === actualDiff;
 }
 

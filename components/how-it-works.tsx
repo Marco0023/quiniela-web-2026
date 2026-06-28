@@ -60,8 +60,8 @@ export function HowItWorksButton() {
                   </InfoBlock>
 
                   <InfoBlock title="4. Eliminatorias">
-                    Aquí eliges quién avanza, contando prórroga y penales. El marcador de 90 minutos es obligatorio. Puede ser
-                    empate, por ejemplo 1-1, si crees que tu equipo avanza después.
+                    Aquí eliges quién avanza, contando prórroga y penales. El marcador global es obligatorio: incluye todo
+                    lo que pasó en el partido, incluso los penales si los hubo. No puede quedar empate.
                   </InfoBlock>
 
                   <div className="rounded-md border border-white/10 bg-white/[0.04] p-3">
@@ -71,7 +71,7 @@ export function HowItWorksButton() {
                       <li>Octavos: avanza 6 puntos, máximo 17.</li>
                       <li>Cuartos: avanza 7 puntos, máximo 18.</li>
                       <li>Semifinal, tercer puesto y final: avanza/gana 8 puntos, máximo 19.</li>
-                      <li>Marcador exacto 90 min: +3. Diferencia de goles: +2.</li>
+                      <li>Marcador exacto global: +3. Diferencia de goles global: +2.</li>
                       <li>Prórroga correcta: +3. Penales correctos: +3.</li>
                     </ul>
                   </div>

@@ -362,8 +362,12 @@ function normalizeResult(match: FootballDataMatch): SyncedResult | null {
   const score = match.score;
   const homeScore90 = numberOrNull(score?.regularTime?.home ?? score?.fullTime?.home);
   const awayScore90 = numberOrNull(score?.regularTime?.away ?? score?.fullTime?.away);
-  const homeScoreFinal = numberOrNull(score?.fullTime?.home ?? homeScore90);
-  const awayScoreFinal = numberOrNull(score?.fullTime?.away ?? awayScore90);
+  const homeFullTime = numberOrNull(score?.fullTime?.home ?? homeScore90);
+  const awayFullTime = numberOrNull(score?.fullTime?.away ?? awayScore90);
+  const homePenalties = numberOrNull(score?.penalties?.home);
+  const awayPenalties = numberOrNull(score?.penalties?.away);
+  const homeScoreFinal = homeFullTime === null ? null : homeFullTime + (homePenalties ?? 0);
+  const awayScoreFinal = awayFullTime === null ? null : awayFullTime + (awayPenalties ?? 0);
   const hasAnyScore = homeScore90 !== null || awayScore90 !== null || homeScoreFinal !== null || awayScoreFinal !== null;
 
   if (status !== "finished" && !hasAnyScore) return null;

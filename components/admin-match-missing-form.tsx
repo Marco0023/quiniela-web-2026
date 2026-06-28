@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 import { Save } from "lucide-react";
 import { inputClass } from "@/components/ui";
 import { saveAdminMatchPrediction } from "@/lib/admin/pending-actions";
-import { getPredictionType, validateScoreConsistency } from "@/lib/scoring";
+import { getPredictionType, validateKnockoutGlobalScore, validateScoreConsistency } from "@/lib/scoring";
 import type { Match, Outcome, Prediction, Team } from "@/lib/types";
 
 type PrivateGroupOption = {
@@ -70,10 +70,13 @@ export function AdminMatchMissingForm({
   const parsedAway = awayScore === "" ? null : Number(awayScore);
   const scoreIsValid = predictionType === "group_stage" ? validateScoreConsistency(outcome, parsedHome, parsedAway) : true;
   const hasRequiredKnockoutScore = predictionType === "group_stage" || (parsedHome !== null && parsedAway !== null);
+  const knockoutScoreIsValid =
+    predictionType === "group_stage" ||
+    validateKnockoutGlobalScore(winnerTeamId, parsedHome, parsedAway, selectedMatch?.homeTeamId ?? null, selectedMatch?.awayTeamId ?? null);
   const isComplete =
     Boolean(selectedMatch && effectiveTargetUserId) &&
     Boolean(selectedMatch?.homeTeamId && selectedMatch?.awayTeamId) &&
-    (predictionType === "group_stage" ? Boolean(outcome) && scoreIsValid : Boolean(winnerTeamId) && hasRequiredKnockoutScore);
+    (predictionType === "group_stage" ? Boolean(outcome) && scoreIsValid : Boolean(winnerTeamId) && hasRequiredKnockoutScore && knockoutScoreIsValid);
 
   function handleMatchChange(nextMatchId: string) {
     const nextMatch = matches.find((match) => match.id === nextMatchId) ?? matches[0];
@@ -200,7 +203,12 @@ export function AdminMatchMissingForm({
               />
               {!hasRequiredKnockoutScore ? (
                 <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
-                  En eliminatorias debes agregar marcador de 90 minutos.
+                  En eliminatorias debes agregar el marcador global del partido.
+                </p>
+              ) : null}
+              {hasRequiredKnockoutScore && !knockoutScoreIsValid ? (
+                <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
+                  El marcador global debe coincidir con el equipo que avanza y no puede ser empate.
                 </p>
               ) : null}
               <div className="grid grid-cols-2 gap-2">

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getPredictionType, isPredictionLocked, validateScoreConsistency } from "@/lib/scoring";
+import { getPredictionType, isPredictionLocked, validateKnockoutGlobalScore, validateScoreConsistency } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Match, Outcome } from "@/lib/types";
@@ -116,7 +116,10 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
       fail(matchId, "Selección inválida para este partido.");
     }
     if (predictedHomeScore === null || predictedAwayScore === null) {
-      fail(matchId, "En eliminatorias debes agregar marcador de 90 minutos.");
+      fail(matchId, "En eliminatorias debes agregar el marcador global del partido.");
+    }
+    if (!validateKnockoutGlobalScore(predictedWinnerTeamId, predictedHomeScore, predictedAwayScore, match.home_team_id, match.away_team_id)) {
+      fail(matchId, "El marcador global debe coincidir con el equipo que avanza y no puede ser empate.");
     }
   }
 
@@ -294,7 +297,10 @@ export async function saveQuickPrediction(formData: FormData): Promise<QuickPred
       return quickFail("Selección inválida para este partido.");
     }
     if (predictedHomeScore === null || predictedAwayScore === null) {
-      return quickFail("En eliminatorias debes agregar marcador de 90 minutos.");
+      return quickFail("En eliminatorias debes agregar el marcador global del partido.");
+    }
+    if (!validateKnockoutGlobalScore(predictedWinnerTeamId, predictedHomeScore, predictedAwayScore, match.home_team_id, match.away_team_id)) {
+      return quickFail("El marcador global debe coincidir con el equipo que avanza y no puede ser empate.");
     }
   }
 

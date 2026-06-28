@@ -33,6 +33,34 @@ export function validateScoreConsistency(
   return homeScore === awayScore;
 }
 
+export function getScoringScore(match: Match, result: MatchResult) {
+  if (match.phase === "group_stage") {
+    return {
+      homeScore: result.homeScore90,
+      awayScore: result.awayScore90
+    };
+  }
+
+  return {
+    homeScore: result.homeScoreFinal ?? result.homeScore90,
+    awayScore: result.awayScoreFinal ?? result.awayScore90
+  };
+}
+
+export function validateKnockoutGlobalScore(
+  winnerTeamId: string | null,
+  homeScore: number | null,
+  awayScore: number | null,
+  homeTeamId: string | null,
+  awayTeamId: string | null
+) {
+  if (!winnerTeamId || homeScore === null || awayScore === null || !homeTeamId || !awayTeamId) return false;
+  if (homeScore === awayScore) return false;
+  if (winnerTeamId === homeTeamId) return homeScore > awayScore;
+  if (winnerTeamId === awayTeamId) return awayScore > homeScore;
+  return false;
+}
+
 function knockoutWinnerPoints(phase: Match["phase"]) {
   if (phase === "round_of_32") return 5;
   if (phase === "round_of_16") return 6;
@@ -41,18 +69,19 @@ function knockoutWinnerPoints(phase: Match["phase"]) {
   return 0;
 }
 
-function applyNinetyMinuteScorePoints(breakdown: ScoreBreakdown, result: MatchResult, prediction: Prediction, exactPoints: number, diffPoints: number) {
+function applyScorePoints(match: Match, breakdown: ScoreBreakdown, result: MatchResult, prediction: Prediction, exactPoints: number, diffPoints: number) {
+  const { homeScore, awayScore } = getScoringScore(match, result);
   const hasPredictedScore = prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null;
-  const hasResultScore = result.homeScore90 !== null && result.awayScore90 !== null;
+  const hasResultScore = homeScore !== null && awayScore !== null;
   if (!hasPredictedScore || !hasResultScore) return;
 
-  const hasExactScore = prediction.predictedHomeScore === result.homeScore90 && prediction.predictedAwayScore === result.awayScore90;
+  const hasExactScore = prediction.predictedHomeScore === homeScore && prediction.predictedAwayScore === awayScore;
   if (hasExactScore) {
     breakdown.exactScorePoints = exactPoints;
   }
 
   const predictedDiff = Math.abs(prediction.predictedHomeScore! - prediction.predictedAwayScore!);
-  const actualDiff = Math.abs(result.homeScore90! - result.awayScore90!);
+  const actualDiff = Math.abs(homeScore! - awayScore!);
   if (predictedDiff === actualDiff) {
     breakdown.goalDifferencePoints = diffPoints;
   }
@@ -74,7 +103,8 @@ export function scorePrediction({
   const breakdown = emptyBreakdown();
 
   if (match.phase === "group_stage") {
-    const actualOutcome = getActualOutcome(result.homeScore90, result.awayScore90);
+    const { homeScore, awayScore } = getScoringScore(match, result);
+    const actualOutcome = getActualOutcome(homeScore, awayScore);
     if (actualOutcome && prediction.predictedOutcome === actualOutcome) {
       breakdown.winnerPoints = 3;
     }
@@ -82,8 +112,8 @@ export function scorePrediction({
     const hasExactScore =
       prediction.predictedHomeScore !== null &&
       prediction.predictedAwayScore !== null &&
-      prediction.predictedHomeScore === result.homeScore90 &&
-      prediction.predictedAwayScore === result.awayScore90;
+      prediction.predictedHomeScore === homeScore &&
+      prediction.predictedAwayScore === awayScore;
 
     if (hasExactScore) {
       breakdown.exactScorePoints = 2;
@@ -93,11 +123,11 @@ export function scorePrediction({
       actualOutcome !== "draw" &&
       prediction.predictedHomeScore !== null &&
       prediction.predictedAwayScore !== null &&
-      result.homeScore90 !== null &&
-      result.awayScore90 !== null
+      homeScore !== null &&
+      awayScore !== null
     ) {
       const predictedDiff = Math.abs(prediction.predictedHomeScore - prediction.predictedAwayScore);
-      const actualDiff = Math.abs(result.homeScore90 - result.awayScore90);
+      const actualDiff = Math.abs(homeScore - awayScore);
       if (predictedDiff === actualDiff) {
         breakdown.goalDifferencePoints = 1;
       }
@@ -108,7 +138,7 @@ export function scorePrediction({
     if (prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId) {
       breakdown.winnerPoints = knockoutWinnerPoints(match.phase);
     }
-    applyNinetyMinuteScorePoints(breakdown, result, prediction, 3, 2);
+    applyScorePoints(match, breakdown, result, prediction, 3, 2);
     if (prediction.predictsExtraTime === result.wentExtraTime) {
       breakdown.extraTimePoints = 3;
     }
@@ -121,7 +151,7 @@ export function scorePrediction({
     if (prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId) {
       breakdown.winnerPoints = knockoutWinnerPoints(match.phase);
     }
-    applyNinetyMinuteScorePoints(breakdown, result, prediction, 3, 2);
+    applyScorePoints(match, breakdown, result, prediction, 3, 2);
 
     if (prediction.predictsExtraTime === result.wentExtraTime) {
       breakdown.extraTimePoints = 3;

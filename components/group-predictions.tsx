@@ -76,7 +76,7 @@ function formatPrediction(prediction: Prediction, match: Match, teams: Team[]) {
   const winner = teams.find((team) => team.id === prediction.predictedWinnerTeamId);
   const score =
     prediction.predictedHomeScore !== null && prediction.predictedAwayScore !== null
-      ? `, 90 min ${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
+      ? `, global ${prediction.predictedHomeScore}-${prediction.predictedAwayScore}`
       : "";
   const extra = `, prórroga ${prediction.predictsExtraTime ? "Sí" : "No"}`;
   const penalties = `, penales ${prediction.predictsPenalties ? "Sí" : "No"}`;

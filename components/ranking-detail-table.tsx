@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Card } from "@/components/ui";
+import { getScoringScore } from "@/lib/scoring";
 import type { ChampionPrediction, GroupClassificationPrediction, Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
 type RankingRow = {
@@ -119,18 +120,20 @@ function getUserStats(userId: string, matches: Match[], results: MatchResult[], 
 
 function isCorrectMatch(match: Match, result: MatchResult, prediction: Prediction) {
   if (match.phase === "group_stage") {
-    return prediction.predictedOutcome === getActualOutcome(result.homeScore90, result.awayScore90);
+    const { homeScore, awayScore } = getScoringScore(match, result);
+    return prediction.predictedOutcome === getActualOutcome(homeScore, awayScore);
   }
 
   return Boolean(prediction.predictedWinnerTeamId && prediction.predictedWinnerTeamId === result.winnerTeamId);
 }
 
-function isExactScore(_match: Match, result: MatchResult, prediction: Prediction) {
+function isExactScore(match: Match, result: MatchResult, prediction: Prediction) {
+  const { homeScore, awayScore } = getScoringScore(match, result);
   return (
     prediction.predictedHomeScore !== null &&
     prediction.predictedAwayScore !== null &&
-    prediction.predictedHomeScore === result.homeScore90 &&
-    prediction.predictedAwayScore === result.awayScore90
+    prediction.predictedHomeScore === homeScore &&
+    prediction.predictedAwayScore === awayScore
   );
 }
 

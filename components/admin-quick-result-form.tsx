@@ -23,6 +23,7 @@ export function AdminQuickResultForm({
   const homeTeam = teams.find((team) => team.id === match.homeTeamId);
   const awayTeam = teams.find((team) => team.id === match.awayTeamId);
   const needsWinner = match.phase !== "group_stage";
+  const scoreLabel = needsWinner ? "Marcador global" : "Marcador";
 
   return (
     <div className="rounded-lg border border-white/10 bg-pitch/35">
@@ -52,11 +53,11 @@ export function AdminQuickResultForm({
           <input name="matchId" type="hidden" value={match.id} />
           <input name="returnTo" type="hidden" value="/inicio-admin" />
           <label className="grid gap-1 text-xs font-bold text-white/60">
-            Local 90 min
+            {scoreLabel} local
             <input className={inputClass} inputMode="numeric" min={0} name="homeScore90" pattern="[0-9]*" type="number" />
           </label>
           <label className="grid gap-1 text-xs font-bold text-white/60">
-            Visitante 90 min
+            {scoreLabel} visitante
             <input className={inputClass} inputMode="numeric" min={0} name="awayScore90" pattern="[0-9]*" type="number" />
           </label>
           <label className="grid gap-1 text-xs font-bold text-white/60 md:col-span-2">

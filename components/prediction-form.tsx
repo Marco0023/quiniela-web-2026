@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { inputClass } from "@/components/ui";
 import { savePrediction } from "@/lib/predictions/actions";
-import { getPredictionType, isPredictionLocked, validateScoreConsistency } from "@/lib/scoring";
+import { getPredictionType, isPredictionLocked, validateKnockoutGlobalScore, validateScoreConsistency } from "@/lib/scoring";
 import type { Match, Outcome, Prediction, Team } from "@/lib/types";
 
 export function PredictionForm({ match, teams, prediction }: { match: Match; teams: Team[]; prediction?: Prediction }) {
@@ -31,6 +31,9 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
     [outcome, parsedAway, parsedHome, predictionType]
   );
   const hasRequiredKnockoutScore = predictionType === "group_stage" || (parsedHome !== null && parsedAway !== null);
+  const knockoutScoreIsValid =
+    predictionType === "group_stage" ||
+    validateKnockoutGlobalScore(winnerTeamId, parsedHome, parsedAway, match.homeTeamId, match.awayTeamId);
   const isSavedRedirecting = saveState?.status === "saved";
 
   useEffect(() => {
@@ -126,7 +129,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
           <div>
             <h3 className="font-black text-white">{predictionType === "final" ? "¿Quién gana la final?" : "¿Quién avanza?"}</h3>
             <p className="mt-1 text-sm leading-6 text-white/58">
-              En eliminación cuenta quién sigue con vida, incluyendo prórroga y penales.
+              En eliminación cuenta quién sigue con vida. El marcador es el global del partido, incluyendo penales si los hay.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -151,12 +154,16 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
             disabled={locked || !hasTeams}
           />
           <p className="rounded-md border border-gold/20 bg-gold/10 px-3 py-2 text-sm leading-6 text-gold">
-            En eliminatorias el marcador de 90 minutos es obligatorio. Puede ser empate si crees que tu equipo avanza después
-            en prórroga o penales.
+            En eliminatorias el marcador global es obligatorio. Si hubo penales, suma esos goles al marcador final.
           </p>
           {!hasRequiredKnockoutScore ? (
             <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
-              Agrega el marcador de 90 minutos para guardar esta predicción.
+              Agrega el marcador global del partido para guardar esta predicción.
+            </p>
+          ) : null}
+          {hasRequiredKnockoutScore && !knockoutScoreIsValid ? (
+            <p className="rounded-md bg-red-500/12 px-3 py-2 text-sm text-red-100">
+              El marcador global debe coincidir con el equipo que avanza y no puede terminar empatado.
             </p>
           ) : null}
 
@@ -169,7 +176,7 @@ export function PredictionForm({ match, teams, prediction }: { match: Match; tea
 
       <button
         type="submit"
-        disabled={!scoreIsValid || !hasRequiredKnockoutScore || !hasTeams || locked || isPending || isSavedRedirecting}
+        disabled={!scoreIsValid || !hasRequiredKnockoutScore || !knockoutScoreIsValid || !hasTeams || locked || isPending || isSavedRedirecting}
         className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-gold px-4 font-black text-pitch transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Save className="size-4" />

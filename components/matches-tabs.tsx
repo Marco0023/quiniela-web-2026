@@ -72,7 +72,7 @@ export function MatchesTabs({
       ) : null}
       {activeTab === "knockout" ? (
         <MatchesByPhasePanel
-          description="Predice quién avanza, marcador en 90 minutos y puntos extra por prórroga o penales."
+          description="Predice quién avanza, marcador global y puntos extra por prórroga o penales."
           matches={matches}
           phases={["round_of_32", "round_of_16"]}
           predictions={predictions}
@@ -85,7 +85,7 @@ export function MatchesTabs({
       ) : null}
       {activeTab === "finals" ? (
         <MatchesByPhasePanel
-          description="Predice quién avanza, marcador en 90 minutos y los extras de prórroga o penales."
+          description="Predice quién avanza, marcador global y los extras de prórroga o penales."
           matches={matches}
           phases={["quarter_finals", "semi_finals", "third_place", "final"]}
           predictions={predictions}

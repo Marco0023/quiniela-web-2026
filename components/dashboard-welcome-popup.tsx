@@ -64,8 +64,8 @@ export function DashboardWelcomePopup({ groupName }: { groupName: string }) {
           </GuideItem>
 
           <GuideItem title="Eliminatorias y final">
-            En las rondas de eliminación eliges quién avanza. Además puedes sumar puntos extra si aciertas si habrá
-            prórroga o penales.
+            En las rondas de eliminación eliges quién avanza y colocas el marcador global del partido. Además puedes
+            sumar puntos extra si aciertas si habrá prórroga o penales.
           </GuideItem>
 
           <GuideItem title="Jornada de hoy">

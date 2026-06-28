@@ -44,6 +44,9 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
           const awayTeam = data.teams.find((team) => team.id === match.awayTeamId);
           const result = data.resultsByMatchId.get(match.id);
           const needsWinner = match.phase !== "group_stage";
+          const homeScoreValue = needsWinner ? (result?.homeScoreFinal ?? result?.homeScore90 ?? "") : (result?.homeScore90 ?? "");
+          const awayScoreValue = needsWinner ? (result?.awayScoreFinal ?? result?.awayScore90 ?? "") : (result?.awayScore90 ?? "");
+          const scoreLabel = needsWinner ? "Marcador global" : "Marcador";
 
           return (
           <Card key={match.id} className="grid gap-4">
@@ -61,10 +64,10 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
             <form action={saveMatchResult} className="grid gap-3 md:grid-cols-6">
               <input name="matchId" type="hidden" value={match.id} />
               <label className="grid gap-1 text-xs font-bold text-white/60">
-                Local 90 min
+                {scoreLabel} local
                 <input
                   className={inputClass}
-                  defaultValue={result?.homeScore90 ?? ""}
+                  defaultValue={homeScoreValue}
                   inputMode="numeric"
                   min={0}
                   name="homeScore90"
@@ -73,10 +76,10 @@ export default async function AdminResultsPage({ searchParams }: { searchParams:
                 />
               </label>
               <label className="grid gap-1 text-xs font-bold text-white/60">
-                Visitante 90 min
+                {scoreLabel} visitante
                 <input
                   className={inputClass}
-                  defaultValue={result?.awayScore90 ?? ""}
+                  defaultValue={awayScoreValue}
                   inputMode="numeric"
                   min={0}
                   name="awayScore90"

@@ -4,7 +4,7 @@ import { Clock, ExternalLink } from "lucide-react";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { formatKickoff, statusLabel } from "@/lib/format";
 import { formatPredictionScore, formatPredictionSelection, formatPredictionSummary } from "@/lib/predictions/format";
-import { isPredictionLocked } from "@/lib/scoring";
+import { getScoringScore, isPredictionLocked } from "@/lib/scoring";
 import type { Match, MatchResult, Prediction, Profile, Team } from "@/lib/types";
 
 export function TodayMatches({
@@ -91,6 +91,8 @@ function TodayMatchCard({
   const awayTeam = teams.find((team) => team.id === match.awayTeamId);
   const finished = match.status === "finished";
   const userPrediction = predictions.find((prediction) => prediction.userId === currentUserId);
+  const displayScore = result ? getScoringScore(match, result) : null;
+  const scoreLabel = match.phase === "group_stage" ? "Resultado 90 min" : "Resultado global";
 
   return (
     <Card className="p-0">
@@ -107,11 +109,11 @@ function TodayMatchCard({
         {finished && result ? (
           <div className="grid min-w-28 place-items-center">
             <div className="flex items-center gap-3 text-4xl font-black text-white">
-              <span>{result.homeScore90 ?? "-"}</span>
+              <span>{displayScore?.homeScore ?? "-"}</span>
               <span className="text-lg text-white/45">-</span>
-              <span>{result.awayScore90 ?? "-"}</span>
+              <span>{displayScore?.awayScore ?? "-"}</span>
             </div>
-            <p className="mt-1 text-xs font-bold text-white/55">Resultado 90 min</p>
+            <p className="mt-1 text-xs font-bold text-white/55">{scoreLabel}</p>
           </div>
         ) : (
           <span className="justify-self-center rounded bg-white/10 px-2 py-1 text-xs font-black text-white/60">VS</span>
@@ -145,7 +147,7 @@ function TodayMatchCard({
                 <tr>
                   <th className="py-2 pr-3">Usuario</th>
                   <th className="px-3 py-2">Selección</th>
-                  <th className="px-3 py-2">Marcador</th>
+                  <th className="px-3 py-2">{match.phase === "group_stage" ? "Marcador" : "Marcador global"}</th>
                   <th className="py-2 pl-3 text-right">Puntos</th>
                 </tr>
               </thead>

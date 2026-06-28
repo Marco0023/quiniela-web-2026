@@ -6,7 +6,7 @@ import { requireAdminProfile } from "@/lib/admin/auth";
 import { recordBadgeEventsForMatch } from "@/lib/badge-events";
 import { scoreCompletedClassificationPredictions } from "@/lib/classification/scoring-service";
 import { propagateKnockoutResult } from "@/lib/knockout-bracket";
-import { scorePrediction } from "@/lib/scoring";
+import { scorePrediction, validateKnockoutGlobalScore } from "@/lib/scoring";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/pagination";
 import type { ChampionPrediction, Match, MatchResult, Prediction } from "@/lib/types";
@@ -84,37 +84,48 @@ export async function saveMatchResult(formData: FormData) {
   if (!matchRow) redirectWithError("Partido no encontrado");
   const matchData = matchRow!;
 
-  const homeScore90 = optionalNumber(formData, "homeScore90");
-  const awayScore90 = optionalNumber(formData, "awayScore90");
+  const submittedHomeScore = optionalNumber(formData, "homeScore90");
+  const submittedAwayScore = optionalNumber(formData, "awayScore90");
   const winnerTeamId = text(formData, "winnerTeamId") || null;
   const wentExtraTime = bool(formData, "wentExtraTime");
   const wentPenalties = bool(formData, "wentPenalties");
+  const isGroupStage = matchData.phase === "group_stage";
 
-  if (homeScore90 === null || awayScore90 === null) {
-    redirectWithError("Ingresa marcador de 90 minutos.");
+  if (submittedHomeScore === null || submittedAwayScore === null) {
+    redirectWithError(isGroupStage ? "Ingresa el marcador del partido." : "Ingresa el marcador global del partido.");
   }
 
-  if (matchData.phase !== "group_stage" && !winnerTeamId) {
+  if (!isGroupStage && !winnerTeamId) {
     redirectWithError("Selecciona ganador o quién avanza.");
   }
   if (winnerTeamId && ![matchData.home_team_id, matchData.away_team_id].includes(winnerTeamId)) {
     redirectWithError("El ganador no pertenece a este partido.");
   }
+  if (
+    !isGroupStage &&
+    !validateKnockoutGlobalScore(winnerTeamId, submittedHomeScore, submittedAwayScore, matchData.home_team_id, matchData.away_team_id)
+  ) {
+    redirectWithError("El marcador global debe coincidir con el equipo que avanza y no puede ser empate.");
+  }
 
   const computedWinner =
     winnerTeamId ??
-    (homeScore90 !== null && awayScore90 !== null && homeScore90 > awayScore90
+    (submittedHomeScore !== null && submittedAwayScore !== null && submittedHomeScore > submittedAwayScore
       ? matchData.home_team_id
-      : homeScore90 !== null && awayScore90 !== null && awayScore90 > homeScore90
+      : submittedHomeScore !== null && submittedAwayScore !== null && submittedAwayScore > submittedHomeScore
         ? matchData.away_team_id
         : null);
+  const homeScore90 = isGroupStage ? submittedHomeScore : null;
+  const awayScore90 = isGroupStage ? submittedAwayScore : null;
+  const homeScoreFinal = submittedHomeScore;
+  const awayScoreFinal = submittedAwayScore;
 
   const resultPayload = {
     match_id: matchId,
     home_score_90: homeScore90,
     away_score_90: awayScore90,
-    home_score_final: homeScore90,
-    away_score_final: awayScore90,
+    home_score_final: homeScoreFinal,
+    away_score_final: awayScoreFinal,
     winner_team_id: computedWinner,
     went_extra_time: wentExtraTime,
     went_penalties: wentPenalties,
@@ -165,8 +176,8 @@ export async function saveMatchResult(formData: FormData) {
     matchId,
     homeScore90,
     awayScore90,
-    homeScoreFinal: homeScore90,
-    awayScoreFinal: awayScore90,
+    homeScoreFinal,
+    awayScoreFinal,
     winnerTeamId: computedWinner,
     wentExtraTime,
     wentPenalties

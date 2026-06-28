@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { CheckCircle2, LogOut, Save, SkipForward, Zap } from "lucide-react";
 import { inputClass } from "@/components/ui";
 import { saveQuickPrediction } from "@/lib/predictions/actions";
-import { getPredictionType, isPredictionLocked, validateScoreConsistency } from "@/lib/scoring";
+import { getPredictionType, isPredictionLocked, validateKnockoutGlobalScore, validateScoreConsistency } from "@/lib/scoring";
 import type { Match, Outcome, Prediction, Team } from "@/lib/types";
 
 export function QuickPredictionWizard({
@@ -160,6 +160,8 @@ function QuickPredictionStep({
   const parsedAway = awayScore === "" ? null : Number(awayScore);
   const scoreIsValid = isGroupStage ? validateScoreConsistency(outcome, parsedHome, parsedAway) : true;
   const hasRequiredScore = isGroupStage || (parsedHome !== null && parsedAway !== null);
+  const knockoutScoreIsValid =
+    isGroupStage || validateKnockoutGlobalScore(winnerTeamId, parsedHome, parsedAway, match.homeTeamId, match.awayTeamId);
 
   async function saveCurrentPrediction() {
     if (!scoreIsValid) {
@@ -167,7 +169,11 @@ function QuickPredictionStep({
       return;
     }
     if (!hasRequiredScore) {
-      setError("En eliminatorias debes agregar marcador de 90 minutos.");
+      setError("En eliminatorias debes agregar el marcador global del partido.");
+      return;
+    }
+    if (!knockoutScoreIsValid) {
+      setError("El marcador global debe coincidir con el equipo que avanza y no puede ser empate.");
       return;
     }
 
@@ -238,7 +244,7 @@ function QuickPredictionStep({
       )}
 
       <div className="grid gap-2">
-        <p className="text-sm font-black text-white">{isGroupStage ? "Marcador opcional" : "Marcador 90 minutos obligatorio"}</p>
+        <p className="text-sm font-black text-white">{isGroupStage ? "Marcador opcional" : "Marcador global obligatorio"}</p>
         <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
           <ScoreInput label={homeTeam?.name ?? "Local"} name="homeScore" value={homeScore} onChange={setHomeScore} />
           <span className="pb-3 text-white/45">-</span>
@@ -258,7 +264,7 @@ function QuickPredictionStep({
       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
         <button
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-gold px-4 font-black text-pitch transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
-          disabled={isSaving || !scoreIsValid || !hasRequiredScore}
+          disabled={isSaving || !scoreIsValid || !hasRequiredScore || !knockoutScoreIsValid}
           type="button"
           onClick={saveCurrentPrediction}
         >

@@ -3,6 +3,7 @@ import { TeamBadge } from "@/components/team-badge";
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { formatKickoff } from "@/lib/format";
 import { getDashboardData } from "@/lib/repository";
+import { getScoringScore } from "@/lib/scoring";
 
 export default async function HistoryPage() {
   const data = await getDashboardData();
@@ -22,6 +23,9 @@ export default async function HistoryPage() {
           const homeTeam = data.teams.find((team) => team.id === match.homeTeamId);
           const awayTeam = data.teams.find((team) => team.id === match.awayTeamId);
           const result = data.results.find((item) => item.matchId === match.id);
+          const displayScore = result ? getScoringScore(match, result) : null;
+          const markerLabel = match.phase === "group_stage" ? "Tu marcador" : "Tu marcador global";
+          const resultLabel = match.phase === "group_stage" ? "Resultado" : "Resultado global";
           const status =
             match.status !== "finished"
               ? "pendiente"
@@ -47,12 +51,12 @@ export default async function HistoryPage() {
               </div>
               <div className="grid gap-2 border-t border-white/10 pt-3 text-sm text-white/62 md:grid-cols-3">
                 <p>
-                  <span className="font-bold text-white/80">Tu marcador:</span>{" "}
+                  <span className="font-bold text-white/80">{markerLabel}:</span>{" "}
                   {prediction.predictedHomeScore ?? "-"} - {prediction.predictedAwayScore ?? "-"}
                 </p>
                 <p>
-                  <span className="font-bold text-white/80">Resultado:</span>{" "}
-                  {result?.homeScore90 ?? "-"} - {result?.awayScore90 ?? "-"}
+                  <span className="font-bold text-white/80">{resultLabel}:</span>{" "}
+                  {displayScore?.homeScore ?? "-"} - {displayScore?.awayScore ?? "-"}
                 </p>
                 <p>
                   <span className="font-bold text-white/80">Estado:</span> {status}
