@@ -155,7 +155,13 @@ export async function savePrediction(_state: SavePredictionState, formData: Form
     };
   }
 
-  redirect(`/partidos/${matchId}?saved=1`);
+  return {
+    status: "saved",
+    redirectTo:
+      match.phase === "round_of_32" || match.phase === "round_of_16"
+        ? "/partidos?tab=knockout&saved=prediccion"
+        : "/partidos?tab=finals&saved=prediccion"
+  };
 }
 
 export async function saveQuickGroupPrediction(formData: FormData): Promise<QuickPredictionResult> {
